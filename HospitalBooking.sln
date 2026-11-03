@@ -1,9 +1,9 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.37710.0 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hospital booking Project", "Hospital booking Project.csproj", "{9941A2A3-EF05-45D6-8D6A-F069B8744DCE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HospitalBooking.API", "HospitalBooking.API\HospitalBooking.API.csproj", "{9941A2A3-EF05-45D6-8D6A-F069B8744DCE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
