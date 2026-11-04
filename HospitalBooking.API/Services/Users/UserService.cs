@@ -54,7 +54,7 @@ namespace HospitalBooking.API.Services.Users
             {
                 return ServiceResponse<object>.Fail("المستخدم غير موجود", 404);
             }
-
+            // TD PHGM HK 
             if (!string.IsNullOrWhiteSpace(dto.Email) && dto.Email.Trim().ToLower() != (user.Email ?? string.Empty).ToLower())
             {
                 var emailExists = await _context.Users.AnyAsync(u => u.UserId != id && u.Email != null && u.Email.ToLower() == dto.Email.Trim().ToLower());

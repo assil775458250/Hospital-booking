@@ -17,8 +17,9 @@ namespace HospitalBooking.API.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
 
+            base.OnModelCreating(modelBuilder);
+            // يخبر EF Core بأن يبحث داخل Assembly المشروع عن الكلاسات التي تطبق الواجهة:
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(YusrDbContext).Assembly);
         }
     }

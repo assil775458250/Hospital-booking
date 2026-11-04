@@ -25,6 +25,7 @@ namespace HospitalBooking.API.Controllers
             if (!response.Success)
             {
                 return StatusCode(response.StatusCode, new { message = response.Message });
+                //return NotFound(response.Message);
             }
 
             if (response.StatusCode == 201)

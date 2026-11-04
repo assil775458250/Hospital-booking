@@ -1,0 +1,368 @@
+{
+  "HospitalBooking.API/Common/Enums/BookingStatus.cs": {
+    "mtime": 1793720306.6190002,
+    "seen": 1793721001.890016,
+    "ast_hash": "726c0db611560a7d20b9fb5d72d6e775",
+    "semantic_hash": "726c0db611560a7d20b9fb5d72d6e775"
+  },
+  "HospitalBooking.API/Common/Enums/UserRole.cs": {
+    "mtime": 1793720306.6210003,
+    "seen": 1793721001.8900235,
+    "ast_hash": "46871f51cf5530560e341d0ef2d29783",
+    "semantic_hash": "46871f51cf5530560e341d0ef2d29783"
+  },
+  "HospitalBooking.API/Configurations/AppointmentSlotConfiguration.cs": {
+    "mtime": 1793720306.625,
+    "seen": 1793721001.8900273,
+    "ast_hash": "c2a45cac778cc07a45e774b6da17a860",
+    "semantic_hash": "c2a45cac778cc07a45e774b6da17a860"
+  },
+  "HospitalBooking.API/Configurations/BookingConfiguration.cs": {
+    "mtime": 1793720306.6263533,
+    "seen": 1793721001.890029,
+    "ast_hash": "e7530e895f37850ba3ce1ea7f4d014fd",
+    "semantic_hash": "e7530e895f37850ba3ce1ea7f4d014fd"
+  },
+  "HospitalBooking.API/Configurations/ClinicConfiguration.cs": {
+    "mtime": 1793720306.6283524,
+    "seen": 1793721001.8900306,
+    "ast_hash": "66e93b29bcaaed37f4f12b7f3f5658b9",
+    "semantic_hash": "66e93b29bcaaed37f4f12b7f3f5658b9"
+  },
+  "HospitalBooking.API/Configurations/DoctorConfiguration.cs": {
+    "mtime": 1793720306.6293514,
+    "seen": 1793721001.8900318,
+    "ast_hash": "6e83492333a4995ad6c7fb9a55a02a7f",
+    "semantic_hash": "6e83492333a4995ad6c7fb9a55a02a7f"
+  },
+  "HospitalBooking.API/Configurations/UserConfiguration.cs": {
+    "mtime": 1793818207.9970114,
+    "seen": 1793821242.9638252,
+    "ast_hash": "8a018331c878b90cb829c5c4a180ea95",
+    "semantic_hash": "8a018331c878b90cb829c5c4a180ea95"
+  },
+  "HospitalBooking.API/Controllers/AdminController.cs": {
+    "mtime": 1793720306.6323526,
+    "seen": 1793721001.8900347,
+    "ast_hash": "cbcbbcab2ded11fdecdc5f0c6d711384",
+    "semantic_hash": "cbcbbcab2ded11fdecdc5f0c6d711384"
+  },
+  "HospitalBooking.API/Controllers/AppointmentsController.cs": {
+    "mtime": 1793720306.6378396,
+    "seen": 1793721001.890036,
+    "ast_hash": "70e01b5be4ca65ec8065d89d53686f0f",
+    "semantic_hash": "70e01b5be4ca65ec8065d89d53686f0f"
+  },
+  "HospitalBooking.API/Controllers/AuthController.cs": {
+    "mtime": 1793720306.641882,
+    "seen": 1793721001.8900378,
+    "ast_hash": "768cff43c0f34d2ecd5000f506d0b69f",
+    "semantic_hash": "768cff43c0f34d2ecd5000f506d0b69f"
+  },
+  "HospitalBooking.API/Controllers/BaseApiController.cs": {
+    "mtime": 1793818207.7793627,
+    "seen": 1793821242.9638457,
+    "ast_hash": "358844e4bda789544a2cfb885c95e4e5",
+    "semantic_hash": "358844e4bda789544a2cfb885c95e4e5"
+  },
+  "HospitalBooking.API/Controllers/DoctorsController.cs": {
+    "mtime": 1793720306.6448379,
+    "seen": 1793721001.8900406,
+    "ast_hash": "01bf641a318fd798f73b164d169ee899",
+    "semantic_hash": "01bf641a318fd798f73b164d169ee899"
+  },
+  "HospitalBooking.API/Controllers/PatientsController.cs": {
+    "mtime": 1793720306.6458378,
+    "seen": 1793721001.890042,
+    "ast_hash": "253dbe351c99e2969e968a40ee0eeb6b",
+    "semantic_hash": "253dbe351c99e2969e968a40ee0eeb6b"
+  },
+  "HospitalBooking.API/Controllers/SlotsController.cs": {
+    "mtime": 1793720306.6468375,
+    "seen": 1793721001.8900435,
+    "ast_hash": "25fddbb6b05135dbdfd7adef7f91b55f",
+    "semantic_hash": "25fddbb6b05135dbdfd7adef7f91b55f"
+  },
+  "HospitalBooking.API/Controllers/SpecializationsController.cs": {
+    "mtime": 1793720306.6478374,
+    "seen": 1793721001.8900447,
+    "ast_hash": "f9f4798a5ff95a223da1a2d0f77a8db9",
+    "semantic_hash": "f9f4798a5ff95a223da1a2d0f77a8db9"
+  },
+  "HospitalBooking.API/Controllers/UsersController.cs": {
+    "mtime": 1793720306.6556597,
+    "seen": 1793721001.8900461,
+    "ast_hash": "7a8824709ac3480ee91676525e7735ae",
+    "semantic_hash": "7a8824709ac3480ee91676525e7735ae"
+  },
+  "HospitalBooking.API/DTOs/AdminDtos.cs": {
+    "mtime": 1793720306.6592858,
+    "seen": 1793721001.8900476,
+    "ast_hash": "7f22237583290b74e9faca9e3e9a7ef1",
+    "semantic_hash": "7f22237583290b74e9faca9e3e9a7ef1"
+  },
+  "HospitalBooking.API/DTOs/AppointmentDtos.cs": {
+    "mtime": 1793720306.660282,
+    "seen": 1793721001.8900487,
+    "ast_hash": "6aab9432542b43a2c42070ef41caf72a",
+    "semantic_hash": "6aab9432542b43a2c42070ef41caf72a"
+  },
+  "HospitalBooking.API/DTOs/AuthDtos.cs": {
+    "mtime": 1793720306.6612802,
+    "seen": 1793721001.89005,
+    "ast_hash": "77bfaee5b9aa30e1d08ab3d8c91df891",
+    "semantic_hash": "77bfaee5b9aa30e1d08ab3d8c91df891"
+  },
+  "HospitalBooking.API/DTOs/DoctorDtos.cs": {
+    "mtime": 1793720306.66328,
+    "seen": 1793721001.8900514,
+    "ast_hash": "6f362bd47700f96965cbbf60b4e46fe9",
+    "semantic_hash": "6f362bd47700f96965cbbf60b4e46fe9"
+  },
+  "HospitalBooking.API/DTOs/PatientDtos.cs": {
+    "mtime": 1793720306.6635857,
+    "seen": 1793721001.8900526,
+    "ast_hash": "6ba58a9011a881f31c7802bd761dfb3c",
+    "semantic_hash": "6ba58a9011a881f31c7802bd761dfb3c"
+  },
+  "HospitalBooking.API/DTOs/SlotDtos.cs": {
+    "mtime": 1793720306.664583,
+    "seen": 1793721001.890054,
+    "ast_hash": "bf2c4c86e888b00e32f0976c6bbfd709",
+    "semantic_hash": "bf2c4c86e888b00e32f0976c6bbfd709"
+  },
+  "HospitalBooking.API/DTOs/SpecializationDtos.cs": {
+    "mtime": 1793720306.6695871,
+    "seen": 1793721001.8900557,
+    "ast_hash": "4431d1d282e890ce6008dbd9740ec011",
+    "semantic_hash": "4431d1d282e890ce6008dbd9740ec011"
+  },
+  "HospitalBooking.API/DTOs/UserDtos.cs": {
+    "mtime": 1793720306.6726155,
+    "seen": 1793721001.8900568,
+    "ast_hash": "52f0668fd996370d16c8c57c293c85e3",
+    "semantic_hash": "52f0668fd996370d16c8c57c293c85e3"
+  },
+  "HospitalBooking.API/Data/Migrations/20261103130638_InitialCreate.Designer.cs": {
+    "mtime": 1793720306.677066,
+    "seen": 1793721001.8900595,
+    "ast_hash": "01b8a087c3e9d77a2f9f026e23b4f705",
+    "semantic_hash": "01b8a087c3e9d77a2f9f026e23b4f705"
+  },
+  "HospitalBooking.API/Data/Migrations/20261103130638_InitialCreate.cs": {
+    "mtime": 1793720306.6780653,
+    "seen": 1793721001.890061,
+    "ast_hash": "12b6a561366831c61cddb871ec855b3c",
+    "semantic_hash": "12b6a561366831c61cddb871ec855b3c"
+  },
+  "HospitalBooking.API/Data/Migrations/YusrDbContextModelSnapshot.cs": {
+    "mtime": 1793720306.6790643,
+    "seen": 1793721001.8900619,
+    "ast_hash": "4f416d69f9b8ded81536fbd8a7836e79",
+    "semantic_hash": "4f416d69f9b8ded81536fbd8a7836e79"
+  },
+  "HospitalBooking.API/Data/YusrDbContext.cs": {
+    "mtime": 1793818208.0255747,
+    "seen": 1793821242.9639227,
+    "ast_hash": "80690ee580f4b31a17097dd5a8480667",
+    "semantic_hash": "80690ee580f4b31a17097dd5a8480667"
+  },
+  "HospitalBooking.API/HospitalBooking.API.csproj": {
+    "mtime": 1793818208.09355,
+    "seen": 1793821242.9639266,
+    "ast_hash": "50f31bae80d88d7ffbd4d569ce97780e",
+    "semantic_hash": "50f31bae80d88d7ffbd4d569ce97780e"
+  },
+  "HospitalBooking.API/Models/AppointmentSlot.cs": {
+    "mtime": 1793720306.685095,
+    "seen": 1793721001.890066,
+    "ast_hash": "875156e8db38ac388c7232070a0b1c4f",
+    "semantic_hash": "875156e8db38ac388c7232070a0b1c4f"
+  },
+  "HospitalBooking.API/Models/Booking.cs": {
+    "mtime": 1793720306.6870637,
+    "seen": 1793721001.890067,
+    "ast_hash": "c3f2961d6901071af76fccf0f0f48b74",
+    "semantic_hash": "c3f2961d6901071af76fccf0f0f48b74"
+  },
+  "HospitalBooking.API/Models/Clinic.cs": {
+    "mtime": 1793720306.688084,
+    "seen": 1793721001.8900685,
+    "ast_hash": "666442f074cd0f886e5b80f090c46e34",
+    "semantic_hash": "666442f074cd0f886e5b80f090c46e34"
+  },
+  "HospitalBooking.API/Models/Doctor.cs": {
+    "mtime": 1793720306.6910732,
+    "seen": 1793721001.89007,
+    "ast_hash": "776e92cb1bf839d6fee81a9b853b24cd",
+    "semantic_hash": "776e92cb1bf839d6fee81a9b853b24cd"
+  },
+  "HospitalBooking.API/Models/User.cs": {
+    "mtime": 1793720306.692065,
+    "seen": 1793721001.8900714,
+    "ast_hash": "b8bd2eb5d52c8b8e69b860bc971877e3",
+    "semantic_hash": "b8bd2eb5d52c8b8e69b860bc971877e3"
+  },
+  "HospitalBooking.API/Program.cs": {
+    "mtime": 1793818208.0540392,
+    "seen": 1793821242.964004,
+    "ast_hash": "03cb638623a6f2cba1e73cdc65e5abce",
+    "semantic_hash": "03cb638623a6f2cba1e73cdc65e5abce"
+  },
+  "HospitalBooking.API/Properties/launchSettings.json": {
+    "mtime": 1793720306.694064,
+    "seen": 1793721001.890074,
+    "ast_hash": "c98ed240273b9232fe6494e0d56aca47",
+    "semantic_hash": "c98ed240273b9232fe6494e0d56aca47"
+  },
+  "HospitalBooking.API/Services/Admin/AdminService.cs": {
+    "mtime": 1793720306.6970646,
+    "seen": 1793721001.8900754,
+    "ast_hash": "f869f4d3a6aaf908d5b9eef087e6fea7",
+    "semantic_hash": "f869f4d3a6aaf908d5b9eef087e6fea7"
+  },
+  "HospitalBooking.API/Services/Admin/IAdminService.cs": {
+    "mtime": 1793720306.6984417,
+    "seen": 1793721001.8900766,
+    "ast_hash": "1be3881a7d52f035386488ddb02ce2f1",
+    "semantic_hash": "1be3881a7d52f035386488ddb02ce2f1"
+  },
+  "HospitalBooking.API/Services/Appointments/AppointmentService.cs": {
+    "mtime": 1793720306.7014384,
+    "seen": 1793721001.890078,
+    "ast_hash": "b48150570ff31c2f3f1993a1c3449e2b",
+    "semantic_hash": "b48150570ff31c2f3f1993a1c3449e2b"
+  },
+  "HospitalBooking.API/Services/Appointments/IAppointmentService.cs": {
+    "mtime": 1793720306.7034426,
+    "seen": 1793721001.8900793,
+    "ast_hash": "ca6a7a08a93534a7b83f07a2f6fdcc1b",
+    "semantic_hash": "ca6a7a08a93534a7b83f07a2f6fdcc1b"
+  },
+  "HospitalBooking.API/Services/Auth/AuthService.cs": {
+    "mtime": 1793720306.706441,
+    "seen": 1793721001.8900805,
+    "ast_hash": "c512636408a95f5bead4599121b26dc2",
+    "semantic_hash": "c512636408a95f5bead4599121b26dc2"
+  },
+  "HospitalBooking.API/Services/Auth/IAuthService.cs": {
+    "mtime": 1793720306.7074368,
+    "seen": 1793721001.890082,
+    "ast_hash": "b3762b352e32ecc97ca02e4de8002ad3",
+    "semantic_hash": "b3762b352e32ecc97ca02e4de8002ad3"
+  },
+  "HospitalBooking.API/Services/Common/ServiceResponse.cs": {
+    "mtime": 1793818207.894663,
+    "seen": 1793821242.9640403,
+    "ast_hash": "dc12beee3ca7563008a9cecc17bff573",
+    "semantic_hash": "dc12beee3ca7563008a9cecc17bff573"
+  },
+  "HospitalBooking.API/Services/Doctors/DoctorService.cs": {
+    "mtime": 1793720306.7117474,
+    "seen": 1793721001.8900852,
+    "ast_hash": "2839ad234a774ca84650c8f0c4272042",
+    "semantic_hash": "2839ad234a774ca84650c8f0c4272042"
+  },
+  "HospitalBooking.API/Services/Doctors/IDoctorService.cs": {
+    "mtime": 1793720306.7127314,
+    "seen": 1793721001.8900864,
+    "ast_hash": "7544e3255dc0a2d3f12edcdbb832714e",
+    "semantic_hash": "7544e3255dc0a2d3f12edcdbb832714e"
+  },
+  "HospitalBooking.API/Services/Patients/IPatientService.cs": {
+    "mtime": 1793720306.7147322,
+    "seen": 1793721001.8900876,
+    "ast_hash": "08c210a865736980b388baab69e59c91",
+    "semantic_hash": "08c210a865736980b388baab69e59c91"
+  },
+  "HospitalBooking.API/Services/Patients/PatientService.cs": {
+    "mtime": 1793720306.715733,
+    "seen": 1793721001.890089,
+    "ast_hash": "a77b41e76dae380dcc95749dace727e0",
+    "semantic_hash": "a77b41e76dae380dcc95749dace727e0"
+  },
+  "HospitalBooking.API/Services/Security/IJwtService.cs": {
+    "mtime": 1793720306.7197335,
+    "seen": 1793721001.89009,
+    "ast_hash": "aa3cc44ef50fbcdc86c3176f1a4778b1",
+    "semantic_hash": "aa3cc44ef50fbcdc86c3176f1a4778b1"
+  },
+  "HospitalBooking.API/Services/Security/IPasswordHasher.cs": {
+    "mtime": 1793720306.721175,
+    "seen": 1793721001.8900914,
+    "ast_hash": "56616c21c090af107896ba75e29cbeb8",
+    "semantic_hash": "56616c21c090af107896ba75e29cbeb8"
+  },
+  "HospitalBooking.API/Services/Security/JwtService.cs": {
+    "mtime": 1793722951.3454819,
+    "seen": 1793725781.7123723,
+    "ast_hash": "59141b28e62936b24682bd8e369a4a79",
+    "semantic_hash": "59141b28e62936b24682bd8e369a4a79"
+  },
+  "HospitalBooking.API/Services/Security/PasswordHasher.cs": {
+    "mtime": 1793720306.725171,
+    "seen": 1793721001.8900938,
+    "ast_hash": "da09cdbd9c96952664f7fa8d06d297e6",
+    "semantic_hash": "da09cdbd9c96952664f7fa8d06d297e6"
+  },
+  "HospitalBooking.API/Services/Slots/ISlotService.cs": {
+    "mtime": 1793720306.7261715,
+    "seen": 1793721001.890095,
+    "ast_hash": "e742062529e497a3f326f36f3f3b6c31",
+    "semantic_hash": "e742062529e497a3f326f36f3f3b6c31"
+  },
+  "HospitalBooking.API/Services/Slots/SlotService.cs": {
+    "mtime": 1793720306.7271733,
+    "seen": 1793721001.8900964,
+    "ast_hash": "22495ee7cc7eeb03a00f5f38bd118e4b",
+    "semantic_hash": "22495ee7cc7eeb03a00f5f38bd118e4b"
+  },
+  "HospitalBooking.API/Services/Specializations/ISpecializationService.cs": {
+    "mtime": 1793720306.7291713,
+    "seen": 1793721001.8900976,
+    "ast_hash": "4c8c630f80255010134de921de28fbb5",
+    "semantic_hash": "4c8c630f80255010134de921de28fbb5"
+  },
+  "HospitalBooking.API/Services/Specializations/SpecializationService.cs": {
+    "mtime": 1793720306.7311716,
+    "seen": 1793721001.8900993,
+    "ast_hash": "73a04e1be1704153a95b08276319330b",
+    "semantic_hash": "73a04e1be1704153a95b08276319330b"
+  },
+  "HospitalBooking.API/Services/Users/IUserService.cs": {
+    "mtime": 1793720306.7349138,
+    "seen": 1793721001.8901005,
+    "ast_hash": "535c4fd46ade43e89d21e24f1d5a190b",
+    "semantic_hash": "535c4fd46ade43e89d21e24f1d5a190b"
+  },
+  "HospitalBooking.API/Services/Users/UserService.cs": {
+    "mtime": 1793818207.9646387,
+    "seen": 1793821242.9641042,
+    "ast_hash": "f2983763e913dfe7706e82bede3466e8",
+    "semantic_hash": "f2983763e913dfe7706e82bede3466e8"
+  },
+  "HospitalBooking.API/appsettings.Development.json": {
+    "mtime": 1793720306.7403545,
+    "seen": 1793721001.890103,
+    "ast_hash": "804b473502a4c415cf75db61c56c32aa",
+    "semantic_hash": "804b473502a4c415cf75db61c56c32aa"
+  },
+  "HospitalBooking.API/appsettings.json": {
+    "mtime": 1793722713.6743014,
+    "seen": 1793725781.7123878,
+    "ast_hash": "7db397f4376f46abdb068ff4c85642b8",
+    "semantic_hash": "7db397f4376f46abdb068ff4c85642b8"
+  },
+  "HospitalBooking.sln": {
+    "mtime": 1793737333.0264027,
+    "seen": 1793821242.9641173,
+    "ast_hash": "2fb627a6e5d28595f932a87f3c7c6d48",
+    "semantic_hash": "2fb627a6e5d28595f932a87f3c7c6d48"
+  },
+  "global.json": {
+    "mtime": 1793737418.1998498,
+    "seen": 1793821242.9641218,
+    "ast_hash": "4d6121de51446cfb072f19a0cce5c6aa",
+    "semantic_hash": "4d6121de51446cfb072f19a0cce5c6aa"
+  }
+}
