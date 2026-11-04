@@ -216,7 +216,7 @@ namespace HospitalBooking.API
             });
 
             // Redirect root "/" to "/swagger" so both work smoothly
-            app.MapGet("/", () => Results.Redirect("/swagger"));
+            app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription(); ;
 
             app.UseHttpsRedirection();
 
