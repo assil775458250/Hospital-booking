@@ -1,0 +1,477 @@
+<div class="doctors-container" dir="rtl">
+  <!-- رأس الصفحة -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2 class="page-title">إدارة الأطباء</h2>
+      <p class="page-description">عرض وإدارة قائمة الأطباء وتخصصاتهم وحالاتهم في نظام يُسر.</p>
+    </div>
+    <div class="header-actions">
+      <button
+        type="button"
+        class="add-doctor-btn"
+        (click)="vm.openAddModal()"
+        title="إضافة طبيب جديد"
+      >
+        <span class="btn-icon">➕</span>
+        <span>إضافة طبيب</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- رسالة النجاح المنبثقة -->
+  @if (vm.successMessage) {
+    <div class="success-banner" role="alert">
+      <div class="success-content">
+        <span class="success-icon">✅</span>
+        <span>{{ vm.successMessage }}</span>
+      </div>
+      <button type="button" class="close-alert-btn" (click)="vm.dismissSuccessMessage()" aria-label="إغلاق التنبيه">✕</button>
+    </div>
+  }
+
+  <!-- شريط البحث والفلاتر -->
+  <div class="filters-card">
+    <div class="filter-group search-group">
+      <label for="searchDoctor" class="filter-label">بحث</label>
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          id="searchDoctor"
+          class="form-control search-input"
+          placeholder="ابحث بالاسم، البريد أو الهاتف..."
+          [(ngModel)]="vm.searchTerm"
+          (ngModelChange)="vm.applyFilters()"
+        />
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label for="specFilter" class="filter-label">التخصص</label>
+      <select
+        id="specFilter"
+        class="form-control form-select"
+        [(ngModel)]="vm.selectedSpecialization"
+        (ngModelChange)="vm.applyFilters()"
+      >
+        <option value="">كافة التخصصات</option>
+        @for (spec of vm.specializations; track spec) {
+          <option [value]="spec">{{ spec }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="statusFilter" class="filter-label">الحالة</label>
+      <select
+        id="statusFilter"
+        class="form-control form-select"
+        [(ngModel)]="vm.selectedStatus"
+        (ngModelChange)="vm.applyFilters()"
+      >
+        <option value="">كافة الحالات</option>
+        <option value="Active">نشط</option>
+        <option value="Inactive">غير نشط</option>
+      </select>
+    </div>
+
+    @if (vm.searchTerm || vm.selectedSpecialization || vm.selectedStatus) {
+      <div class="filter-actions">
+        <button type="button" class="reset-btn" (click)="vm.resetFilters()">
+          <span>إعادة تعيين</span>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- جدول الأطباء -->
+  <div class="table-card">
+    <div class="table-meta">
+      <span class="results-count">
+        عدد الأطباء المعروضين: <strong>{{ vm.filteredCount }}</strong> من إجمالي <strong>{{ vm.totalCount }}</strong>
+      </span>
+    </div>
+
+    @if (vm.filteredDoctors.length > 0) {
+      <div class="table-responsive">
+        <table class="doctors-table">
+          <thead>
+            <tr>
+              <th class="th-avatar">الصورة</th>
+              <th>اسم الطبيب</th>
+              <th>التخصص</th>
+              <th>الهاتف</th>
+              <th>البريد الإلكتروني</th>
+              <th class="th-status">الحالة</th>
+              <th class="th-actions">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (doctor of vm.filteredDoctors; track doctor.id) {
+              <tr>
+                <td class="td-avatar">
+                  @if (doctor.profileImageUrl) {
+                    <img [src]="doctor.profileImageUrl" [alt]="doctor.fullName" class="doctor-avatar-img" />
+                  } @else {
+                    <div class="doctor-avatar-fallback">
+                      {{ vm.getInitials(doctor.fullName) }}
+                    </div>
+                  }
+                </td>
+                <td class="doctor-name">
+                  <strong>{{ doctor.fullName }}</strong>
+                </td>
+                <td>
+                  <span class="spec-tag">{{ doctor.specializationName }}</span>
+                </td>
+                <td class="ltr-cell">{{ doctor.phoneNumber }}</td>
+                <td class="ltr-cell">{{ doctor.email }}</td>
+                <td>
+                  @if (doctor.accountStatus === 'Active') {
+                    <span class="status-badge status-active">
+                      <span class="status-dot"></span>
+                      نشط
+                    </span>
+                  } @else {
+                    <span class="status-badge status-inactive">
+                      <span class="status-dot"></span>
+                      غير نشط
+                    </span>
+                  }
+                </td>
+                <td class="td-actions">
+                  <button
+                    type="button"
+                    class="action-btn edit-btn"
+                    (click)="vm.openEditModal(doctor)"
+                    title="تعديل بيانات الطبيب"
+                  >
+                    تعديل
+                  </button>
+
+                  @if (doctor.accountStatus === 'Active') {
+                    <button
+                      type="button"
+                      class="action-btn deactivate-btn"
+                      (click)="vm.toggleDoctorStatus(doctor)"
+                      title="تعطيل الحساب"
+                    >
+                      تعطيل
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="action-btn activate-btn"
+                      (click)="vm.toggleDoctorStatus(doctor)"
+                      title="تفعيل الحساب"
+                    >
+                      تفعيل
+                    </button>
+                  }
+
+                  <button
+                    type="button"
+                    class="action-btn details-btn"
+                    (click)="vm.openDetailsModal(doctor)"
+                    title="عرض تفاصيل الطبيب"
+                  >
+                    التفاصيل
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="empty-results">
+        <span class="empty-icon">🔍</span>
+        <h4>لا توجد نتائج مطابقة</h4>
+        <p>لم نجد أي أطباء يطابقون معايير البحث والفلترة المحددة. جرب تعديل الكلمات أو إعادة تعيين الفلاتر.</p>
+        <button type="button" class="reset-link-btn" (click)="vm.resetFilters()">إعادة تعيين كافة الفلاتر</button>
+      </div>
+    }
+  </div>
+
+  <!-- النافذة المنبثقة لإضافة / تعديل طبيب -->
+  @if (vm.isModalOpen) {
+    <div class="modal-backdrop" (click)="vm.closeModal()"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          {{ vm.isEditMode ? 'تعديل بيانات الطبيب' : 'إضافة طبيب جديد' }}
+        </h3>
+        <button type="button" class="modal-close-btn" (click)="vm.closeModal()">✕</button>
+      </div>
+
+      @if (vm.formError) {
+        <div class="form-error-banner">
+          <span>⚠️ {{ vm.formError }}</span>
+        </div>
+      }
+
+      <form (ngSubmit)="vm.saveDoctor()" class="modal-form">
+        <div class="form-row">
+          <div class="form-field">
+            <label for="docFullName" class="field-label">الاسم الكامل *</label>
+            <input
+              type="text"
+              id="docFullName"
+              name="fullName"
+              class="form-control"
+              placeholder="مثال: د. عبد الله السالم"
+              [(ngModel)]="vm.doctorForm.fullName"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="docPhone" class="field-label">رقم الهاتف *</label>
+            <input
+              type="text"
+              id="docPhone"
+              name="phoneNumber"
+              class="form-control"
+              placeholder="مثال: 0501234567"
+              [(ngModel)]="vm.doctorForm.phoneNumber"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="docEmail" class="field-label">البريد الإلكتروني *</label>
+            <input
+              type="email"
+              id="docEmail"
+              name="email"
+              class="form-control"
+              placeholder="doctor@yusr.med"
+              [(ngModel)]="vm.doctorForm.email"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="docSpec" class="field-label">التخصص *</label>
+            <select
+              id="docSpec"
+              name="specializationName"
+              class="form-control"
+              [(ngModel)]="vm.doctorForm.specializationName"
+              required
+            >
+              @for (spec of vm.specializations; track spec) {
+                <option [value]="spec">{{ spec }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        @if (!vm.isEditMode) {
+          <div class="form-field">
+            <label for="docPassword" class="field-label">كلمة المرور الأولية *</label>
+            <input
+              type="password"
+              id="docPassword"
+              name="password"
+              class="form-control"
+              placeholder="أدخل كلمة مرور أولية لحساب الطبيب"
+              [(ngModel)]="vm.doctorForm.password"
+              required
+            />
+          </div>
+        }
+
+        <div class="form-field">
+          <label class="field-label">حالة الحساب</label>
+          <div class="status-options">
+            <label class="radio-label">
+              <input
+                type="radio"
+                name="accountStatus"
+                value="Active"
+                [(ngModel)]="vm.doctorForm.accountStatus"
+              />
+              <span>نشط</span>
+            </label>
+            <label class="radio-label">
+              <input
+                type="radio"
+                name="accountStatus"
+                value="Inactive"
+                [(ngModel)]="vm.doctorForm.accountStatus"
+              />
+              <span>غير نشط</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="vm.closeModal()">إلغاء</button>
+          <button type="submit" class="btn-save">حفظ</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- نافذة تفاصيل الطبيب ومواعيد العمل -->
+  @if (vm.isDetailsModalOpen) {
+    <div class="modal-backdrop" (click)="vm.closeDetailsModal()"></div>
+    <div class="modal-dialog details-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="doctorDetailsTitle">
+      <div class="modal-header">
+        <h3 id="doctorDetailsTitle" class="modal-title">تفاصيل الطبيب</h3>
+        <button
+          type="button"
+          class="modal-close-btn"
+          (click)="vm.closeDetailsModal()"
+          aria-label="إغلاق"
+        >
+          ✕
+        </button>
+      </div>
+
+      @if (vm.isLoadingDetails) {
+        <div class="details-state">
+          <div class="details-spinner"></div>
+          <p>جاري تحميل تفاصيل الطبيب ومواعيد العمل...</p>
+        </div>
+      } @else if (vm.detailsError) {
+        <div class="details-state details-error-state" role="alert">
+          <span class="details-state-icon">⚠️</span>
+          <p>{{ vm.detailsError }}</p>
+          <button type="button" class="reset-link-btn" (click)="vm.retryLoadDoctorDetails()">
+            إعادة المحاولة
+          </button>
+        </div>
+      } @else if (vm.selectedDoctorDetails) {
+        <div class="details-body">
+          <!-- المعلومات الأساسية -->
+          <div class="details-section">
+            <h4 class="details-section-title">المعلومات الأساسية</h4>
+            <div class="doctor-profile-head">
+              @if (vm.hasTextValue(vm.selectedDoctorDetails.profileImageUrl)) {
+                <img
+                  [src]="vm.selectedDoctorDetails.profileImageUrl"
+                  [alt]="vm.selectedDoctorDetails.fullName"
+                  class="details-avatar-img"
+                />
+              }
+              <div class="details-grid">
+                @if (vm.hasTextValue(vm.selectedDoctorDetails.fullName)) {
+                  <div class="detail-item">
+                    <span class="detail-label">اسم الطبيب</span>
+                    <span class="detail-value">{{ vm.selectedDoctorDetails.fullName }}</span>
+                  </div>
+                }
+                @if (vm.hasTextValue(vm.selectedDoctorDetails.specializationName)) {
+                  <div class="detail-item">
+                    <span class="detail-label">التخصص</span>
+                    <span class="detail-value">{{ vm.selectedDoctorDetails.specializationName }}</span>
+                  </div>
+                }
+                @if (vm.hasTextValue(vm.selectedDoctorDetails.clinic)) {
+                  <div class="detail-item">
+                    <span class="detail-label">العيادة</span>
+                    <span class="detail-value">{{ vm.selectedDoctorDetails.clinic }}</span>
+                  </div>
+                }
+                @if (vm.hasTextValue(vm.selectedDoctorDetails.phoneNumber)) {
+                  <div class="detail-item">
+                    <span class="detail-label">رقم الهاتف</span>
+                    <span class="detail-value ltr-cell">{{ vm.selectedDoctorDetails.phoneNumber }}</span>
+                  </div>
+                }
+                @if (vm.hasTextValue(vm.selectedDoctorDetails.email)) {
+                  <div class="detail-item">
+                    <span class="detail-label">البريد الإلكتروني</span>
+                    <span class="detail-value ltr-cell">{{ vm.selectedDoctorDetails.email }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- المعلومات المهنية -->
+          @if (vm.hasProfessionalInfo(vm.selectedDoctorDetails)) {
+            <div class="details-section">
+              <h4 class="details-section-title">المعلومات المهنية</h4>
+              <div class="details-grid">
+                @if (vm.hasExperienceValue(vm.selectedDoctorDetails.experience)) {
+                  <div class="detail-item">
+                    <span class="detail-label">سنوات الخبرة</span>
+                    <span class="detail-value">
+                      {{ vm.formatExperience(vm.selectedDoctorDetails.experience) }}
+                    </span>
+                  </div>
+                }
+                @if (
+                  vm.selectedDoctorDetails.appointmentsCount !== null &&
+                  vm.selectedDoctorDetails.appointmentsCount !== undefined
+                ) {
+                  <div class="detail-item">
+                    <span class="detail-label">عدد الحجوزات المرتبطة</span>
+                    <span class="detail-value">{{ vm.selectedDoctorDetails.appointmentsCount }}</span>
+                  </div>
+                }
+                @if (vm.hasTextValue(vm.selectedDoctorDetails.bio)) {
+                  <div class="detail-item detail-full">
+                    <span class="detail-label">نبذة الطبيب</span>
+                    <span class="detail-value">{{ vm.selectedDoctorDetails.bio }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- جدول مواعيد عمل الطبيب -->
+          <div class="details-section">
+            <h4 class="details-section-title">جدول مواعيد عمل الطبيب</h4>
+            @if (vm.selectedDoctorDetails.scheduleSlots.length > 0) {
+              <div class="table-responsive">
+                <table class="slots-table">
+                  <thead>
+                    <tr>
+                      <th>التاريخ</th>
+                      <th>اليوم</th>
+                      <th>وقت البداية</th>
+                      <th>وقت النهاية</th>
+                      <th>حالة الموعد</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (slot of vm.selectedDoctorDetails.scheduleSlots; track slot.id || $index) {
+                      <tr>
+                        <td class="ltr-cell">{{ vm.formatSlotDate(slot.date) }}</td>
+                        <td>{{ vm.getDayNameFromDate(slot.date) }}</td>
+                        <td class="ltr-cell">{{ vm.formatSlotTime(slot.startTime) }}</td>
+                        <td class="ltr-cell">{{ vm.formatSlotTime(slot.endTime) }}</td>
+                        <td>
+                          <span
+                            class="slot-badge"
+                            [class.slot-available]="slot.status.toLowerCase() === 'available'"
+                            [class.slot-booked]="slot.status.toLowerCase() === 'booked'"
+                            [class.slot-unavailable]="slot.status.toLowerCase() === 'unavailable'"
+                          >
+                            {{ vm.getSlotStatusLabel(slot.status) }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <div class="slots-empty">لا توجد مواعيد عمل مسجلة لهذا الطبيب حاليًا.</div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="vm.closeDetailsModal()">إغلاق</button>
+      </div>
+    </div>
+  }
+</div>

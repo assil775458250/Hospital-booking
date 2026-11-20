@@ -1,0 +1,800 @@
+
+<div class="layout-container" dir="rtl">
+
+  <!-- القائمة الجانبية -->
+  <aside class="sidebar">
+
+    <div class="sidebar-header">
+      <img
+        src="/images/yusr.jpeg"
+        alt="شعار نظام يُسر"
+        class="sidebar-logo">
+
+      <div class="brand-text">
+        <h2 class="brand-name">نظام يُسر</h2>
+        <p class="portal-badge">بوابة الطبيب</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <button
+        [class.active]="vm.page === 'dashboard'"
+        (click)="vm.changePage('dashboard')">
+        <span class="nav-icon">📊</span>
+        لوحة التحكم
+      </button>
+
+      <button
+        [class.active]="vm.page === 'appointments'"
+        (click)="vm.changePage('appointments')">
+        <span class="nav-icon">📅</span>
+        حجوزاتي
+      </button>
+
+      <button
+        [class.active]="vm.page === 'schedule'"
+        (click)="vm.changePage('schedule')">
+        <span class="nav-icon">🗓️</span>
+        جدول العمل
+      </button>
+
+      <button
+        [class.active]="vm.page === 'slots'"
+        (click)="vm.changePage('slots')">
+        <span class="nav-icon">⏰</span>
+        الأوقات المتاحة
+      </button>
+
+      <button
+        [class.active]="vm.page === 'profile'"
+        (click)="vm.changePage('profile')">
+        <span class="nav-icon">👤</span>
+        الملف الشخصي
+      </button>
+
+    </nav>
+
+  </aside>
+
+  <!-- المحتوى الرئيسي -->
+  <div class="main-wrapper">
+
+    <header class="topbar">
+
+      <h3>لوحة تحكم النظام الطبي</h3>
+
+      <div class="topbar-user">
+
+        <div class="user-avatar">👨‍⚕️</div>
+
+        <div class="user-details">
+          <strong>{{ vm.doctorName }}</strong>
+          <small>{{ vm.specialization }}</small>
+        </div>
+
+        <button
+          class="logout-btn"
+          (click)="vm.logout()">
+          تسجيل الخروج
+        </button>
+
+      </div>
+    </header>
+
+    <main class="content-area">
+
+      <!-- لوحة التحكم -->
+      @if (vm.page === 'dashboard') {
+
+        <div class="welcome-card">
+          <h2>مرحبًا بك، {{ vm.doctorName }}</h2>
+          <p>
+            إليك ملخص مواعيدك وحجوزاتك في نظام يُسر.
+          </p>
+        </div>
+
+        <div class="stats-grid">
+
+          <div class="stat-card">
+            <div class="stat-title">
+              <span class="stat-icon">📅</span>
+              مواعيد اليوم
+            </div>
+
+            <h2>{{ vm.todayAppointments.length }}</h2>
+            <p>إجمالي مواعيدك اليوم</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-title">
+              <span class="stat-icon">✅</span>
+              المواعيد المكتملة
+            </div>
+
+            <h2>{{ vm.completedCount }}</h2>
+            <p>إجمالي المواعيد المكتملة</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-title">
+              <span class="stat-icon">⏳</span>
+              قيد الانتظار
+            </div>
+
+            <h2>{{ vm.pendingCount }}</h2>
+            <p>حجوزات تنتظر التأكيد</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-title">
+              <span class="stat-icon">🕒</span>
+              الأوقات المتاحة
+            </div>
+
+            <h2>
+              {{ vm.slots.length }}
+            </h2>
+            <p>إجمالي الأوقات المسجلة</p>
+          </div>
+
+        </div>
+
+        <section class="content-card">
+
+          <div class="section-title">
+            <h3>📋 مواعيد اليوم</h3>
+
+            <button
+              class="link-btn"
+              (click)="vm.changePage('appointments')">
+              عرض جميع الحجوزات
+            </button>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>اسم المريض</th>
+                  <th>التاريخ</th>
+                  <th>الوقت</th>
+                  <th>الحالة</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (
+                  appointment of vm.todayAppointments;
+                  track appointment.id
+                ) {
+
+                  <tr>
+                    <td>{{ appointment.patientName }}</td>
+                    <td>{{ appointment.date }}</td>
+                    <td>{{ appointment.time }}</td>
+
+                    <td>
+                      <span
+                        class="status"
+                        [ngClass]="appointment.status.toLowerCase()">
+
+                        @switch (appointment.status) {
+                          @case ('Pending') { قيد الانتظار }
+                          @case ('Confirmed') { مؤكد }
+                          @case ('Completed') { مكتمل }
+                          @case ('Cancelled') { ملغي }
+                          @default { {{ appointment.status }} }
+                        }
+
+                      </span>
+                    </td>
+                  </tr>
+
+                } @empty {
+
+                  <tr>
+                    <td
+                      colspan="4"
+                      class="empty-message">
+                      لا توجد مواعيد لهذا اليوم
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+        </section>
+
+      }
+
+      <!-- حجوزاتي -->
+      @if (vm.page === 'appointments') {
+
+        <div class="page-heading">
+          <h2>حجوزاتي</h2>
+          <p>
+            عرض حجوزات المرضى وتحديث حالة المواعيد.
+          </p>
+        </div>
+
+        <section class="content-card">
+
+          <div class="section-title">
+            <h3>📅 قائمة الحجوزات</h3>
+
+            <span>
+              عدد الحجوزات: {{ vm.appointments.length }}
+            </span>
+          </div>
+
+          <div class="table-container">
+            <table>
+
+              <thead>
+                <tr>
+                  <th>اسم المريض</th>
+                  <th>تاريخ الموعد</th>
+                  <th>الوقت</th>
+                  <th>الحالة</th>
+                  <th>تحديث الحالة</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (
+                  appointment of vm.appointments;
+                  track appointment.id
+                ) {
+
+                  <tr>
+                    <td>{{ appointment.patientName }}</td>
+                    <td>{{ appointment.date }}</td>
+                    <td>{{ appointment.time }}</td>
+
+                    <td>
+                      <span
+                        class="status"
+                        [ngClass]="appointment.status.toLowerCase()">
+
+                        @switch (appointment.status) {
+                          @case ('Pending') { قيد الانتظار }
+                          @case ('Confirmed') { مؤكد }
+                          @case ('Completed') { مكتمل }
+                          @case ('Cancelled') { ملغي }
+                          @default { {{ appointment.status }} }
+                        }
+
+                      </span>
+                    </td>
+
+                    <td>
+                      <select
+                        [ngModel]="appointment.status"
+                        (ngModelChange)="vm.updateStatus(appointment.id, $event)">
+
+                        @if (
+                          appointment.status !== 'Completed' &&
+                          appointment.status !== 'Cancelled'
+                        ) {
+                          <option
+                            [value]="appointment.status"
+                            disabled>
+                            اختر الحالة
+                          </option>
+                        }
+
+                        <option value="Completed">
+                          مكتمل
+                        </option>
+
+                        <option value="Cancelled">
+                          ملغي
+                        </option>
+
+                      </select>
+                    </td>
+                  </tr>
+
+                } @empty {
+
+                  <tr>
+                    <td
+                      colspan="5"
+                      class="empty-message">
+                      لا توجد حجوزات حاليًا
+                    </td>
+                  </tr>
+
+                }
+              </tbody>
+
+            </table>
+          </div>
+
+        </section>
+      }
+
+      <!-- جدول العمل -->
+      @if (vm.page === 'schedule') {
+
+        <div class="page-heading">
+          <h2>جدول العمل</h2>
+          <p>
+            حدد أيام عملك وأوقات بداية ونهاية الدوام.
+          </p>
+        </div>
+
+        <section class="content-card schedule-card">
+
+          <div class="section-title">
+            <h3>🗓️ أيام وساعات العمل</h3>
+          </div>
+
+          <p class="schedule-description">
+            فعّل أيام العمل وحدد وقت الدوام لكل يوم.
+            اليوم غير المفعل يُعتبر إجازة.
+          </p>
+
+          <div class="work-days">
+
+            @for (day of vm.workDays; track day.name) {
+
+              <div
+                class="schedule-day"
+                [class.day-disabled]="!day.active">
+
+                <div class="schedule-day-header">
+
+                  <label class="day-name">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="day.active">
+
+                    <span>
+                      @switch (day.name) {
+                        @case ('Saturday') { السبت }
+                        @case ('Sunday') { الأحد }
+                        @case ('Monday') { الإثنين }
+                        @case ('Tuesday') { الثلاثاء }
+                        @case ('Wednesday') { الأربعاء }
+                        @case ('Thursday') { الخميس }
+                        @case ('Friday') { الجمعة }
+                      }
+                    </span>
+                  </label>
+
+                  <span
+                    class="day-badge"
+                    [class.badge-off]="!day.active">
+
+                    {{ day.active ? 'يوم عمل' : 'إجازة' }}
+                  </span>
+
+                </div>
+
+                @if (day.active) {
+
+                  <div class="schedule-times">
+
+                    <div class="schedule-time-field">
+                      <label>بداية الدوام</label>
+
+                      <input
+                        type="time"
+                        dir="ltr"
+                        [(ngModel)]="day.startTime">
+                    </div>
+
+                    <div class="schedule-time-field">
+                      <label>نهاية الدوام</label>
+
+                      <input
+                        type="time"
+                        dir="ltr"
+                        [(ngModel)]="day.endTime">
+                    </div>
+
+                  </div>
+                }
+
+              </div>
+            }
+
+          </div>
+
+          <div class="schedule-footer">
+            <button
+              class="primary-btn"
+              (click)="vm.saveSchedule()">
+              💾 حفظ جدول العمل
+            </button>
+          </div>
+
+        </section>
+      }
+
+      <!-- الأوقات المتاحة -->
+      @if (vm.page === 'slots') {
+
+        <div class="page-heading">
+          <h2>الأوقات المتاحة</h2>
+          <p>
+            إضافة أوقات الحجز والتحكم في تفعيلها أو إيقافها.
+          </p>
+        </div>
+
+        <!-- إضافة وقت جديد -->
+        <section class="content-card">
+
+          <h3>⏰ إضافة موعد جديد متاح</h3>
+
+          <div class="form-row slot-form">
+
+            <div class="form-group">
+              <label>التاريخ</label>
+
+              <input
+                type="date"
+                lang="en-US"
+                dir="ltr"
+                [(ngModel)]="vm.newSlotDate">
+            </div>
+
+            <div class="form-group">
+              <label>الساعة من</label>
+
+              <input
+                type="time"
+                dir="ltr"
+                [(ngModel)]="vm.newSlotStartTime">
+            </div>
+
+            <div class="form-group">
+              <label>الساعة إلى</label>
+
+              <input
+                type="time"
+                dir="ltr"
+                [(ngModel)]="vm.newSlotEndTime">
+            </div>
+
+            <button
+              class="primary-btn"
+              (click)="vm.addSlot()">
+              إضافة الوقت
+            </button>
+
+          </div>
+
+        </section>
+
+        <!-- جدول الأوقات المتاحة -->
+        <section class="content-card">
+
+          <div class="section-title">
+            <h3>📋 قائمة الأوقات المتاحة</h3>
+
+            <span>
+              عدد الأوقات: {{ vm.slots.length }}
+            </span>
+          </div>
+
+          <div class="table-container">
+
+            <table>
+              <thead>
+                <tr>
+                  <th>التاريخ</th>
+                  <th>من الساعة</th>
+                  <th>إلى الساعة</th>
+                  <th>الحالة</th>
+                  <th>الإجراء</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                @for (slot of vm.slots; track slot.id) {
+
+                  <tr>
+
+                    <td>{{ slot.date }}</td>
+
+                    <td>{{ slot.startTime }}</td>
+
+                    <td>{{ slot.endTime }}</td>
+
+                    <td>
+                      <span
+                        class="slot-status"
+                        [class.slot-stopped]="!slot.isActive">
+
+                        {{ slot.isActive ? 'متاح' : 'متوقف' }}
+
+                      </span>
+                    </td>
+
+                    <td>
+
+                      @if (slot.isActive) {
+
+                        <button
+                          class="stop-btn"
+                          (click)="vm.stopSlot(slot.id)">
+                          توقف
+                        </button>
+
+                      } @else {
+
+                        <button
+                          class="activate-btn"
+                          (click)="vm.activateSlot(slot.id)">
+                          تفعيل
+                        </button>
+
+                      }
+
+                    </td>
+                  </tr>
+
+                } @empty {
+
+                  <tr>
+                    <td
+                      colspan="5"
+                      class="empty-message">
+                      لا توجد أوقات متاحة مسجلة
+                    </td>
+                  </tr>
+
+                }
+
+              </tbody>
+            </table>
+
+          </div>
+
+        </section>
+      }
+
+      <!-- الملف الشخصي -->
+      @if (vm.page === 'profile') {
+
+        <div class="page-heading">
+          <h2>الملف الشخصي</h2>
+          <p>عرض وتحديث بيانات حسابك وتغيير كلمة المرور الخاصة بك في لوحة تحكم نظام يُسر.</p>
+        </div>
+
+        <!-- تنبيهات النجاح والخطأ -->
+        @if (vm.successMessage) {
+          <div class="alert-banner success-banner" role="alert">
+            <div class="alert-content">
+              <span class="alert-icon">✅</span>
+              <span>{{ vm.successMessage }}</span>
+            </div>
+            <button
+              type="button"
+              class="close-alert-btn"
+              (click)="vm.dismissSuccessMessage()"
+              aria-label="إغلاق التنبيه"
+            >
+              ✕
+            </button>
+          </div>
+        }
+
+        @if (vm.formError) {
+          <div class="alert-banner error-banner" role="alert">
+            <div class="alert-content">
+              <span class="alert-icon">⚠️</span>
+              <span>{{ vm.formError }}</span>
+            </div>
+            <button
+              type="button"
+              class="close-alert-btn"
+              (click)="vm.dismissFormError()"
+              aria-label="إغلاق التنبيه"
+            >
+              ✕
+            </button>
+          </div>
+        }
+
+        <!-- بطاقة ملخص معلومات الحساب -->
+        <div class="content-card overview-card">
+          <div class="overview-header">
+            <div class="overview-avatar">
+              <span class="avatar-icon">👨‍⚕️</span>
+            </div>
+            <div class="overview-details">
+              <h3 class="overview-name">{{ vm.doctorName }}</h3>
+              @if (vm.specialization) {
+                <span class="overview-specialization">{{ vm.specialization }}</span>
+              }
+              @if (vm.doctorId) {
+                <span class="overview-id">معرف الطبيب: #{{ vm.doctorId }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="overview-meta-grid">
+            <div class="meta-item">
+              <span class="meta-label">الدور:</span>
+              <span class="role-badge role-doctor">طبيب</span>
+            </div>
+
+            @if (vm.accountStatus) {
+              <div class="meta-item">
+                <span class="meta-label">حالة الحساب:</span>
+                <span
+                  class="status-badge"
+                  [class.status-active]="vm.accountStatus === 'Active'"
+                  [class.status-inactive]="vm.accountStatus === 'Inactive'"
+                >
+                  <span class="status-dot"></span>
+                  @if (vm.accountStatus === 'Active') {
+                    نشط
+                  } @else {
+                    غير نشط
+                  }
+                </span>
+              </div>
+            }
+
+            @if (vm.createdAt) {
+              <div class="meta-item">
+                <span class="meta-label">تاريخ الإنشاء:</span>
+                <span class="meta-value date-cell">{{ vm.createdAt }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- شبكة نماذج التعديل -->
+        <div class="forms-grid">
+          <!-- قسم البيانات الشخصية -->
+          <div class="content-card form-section-card">
+            <div class="section-header">
+              <div class="section-title-wrap">
+                <span class="section-icon">📝</span>
+                <div>
+                  <h3 class="section-title">البيانات الشخصية</h3>
+                  <p class="section-description">تحديث البيانات الأساسية الخاصة بحسابك في النظام.</p>
+                </div>
+              </div>
+            </div>
+
+            <form (ngSubmit)="vm.saveProfile()" class="profile-form">
+              <div class="form-group">
+                <label for="doctorFullName">الاسم الكامل *</label>
+                <input
+                  type="text"
+                  id="doctorFullName"
+                  name="doctorFullName"
+                  placeholder="أدخل الاسم الكامل..."
+                  [(ngModel)]="vm.doctorName"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="doctorEmailInput">البريد الإلكتروني *</label>
+                <input
+                  type="email"
+                  id="doctorEmailInput"
+                  name="doctorEmailInput"
+                  dir="ltr"
+                  placeholder="name@example.com"
+                  [(ngModel)]="vm.email"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="doctorPhoneInput">رقم الهاتف *</label>
+                <input
+                  type="tel"
+                  id="doctorPhoneInput"
+                  name="doctorPhoneInput"
+                  dir="ltr"
+                  placeholder="05XXXXXXXX"
+                  [(ngModel)]="vm.phone"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="doctorSpecInput">التخصص الطبي *</label>
+                <input
+                  type="text"
+                  id="doctorSpecInput"
+                  name="doctorSpecInput"
+                  placeholder="أدخل التخصص الطبي..."
+                  [(ngModel)]="vm.specialization"
+                  required
+                />
+              </div>
+
+              <div class="form-actions">
+                <button
+                  type="submit"
+                  class="primary-btn"
+                >
+                  <span>حفظ التعديلات</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- قسم تغيير كلمة المرور -->
+          <div class="content-card form-section-card">
+            <div class="section-header">
+              <div class="section-title-wrap">
+                <span class="section-icon">🔒</span>
+                <div>
+                  <h3 class="section-title">تغيير كلمة المرور</h3>
+                  <p class="section-description">تحديث كلمة مرور الحساب لتعزيز أمان الحساب الشخصي.</p>
+                </div>
+              </div>
+            </div>
+
+            <form (ngSubmit)="vm.changePassword()" class="profile-form">
+              <div class="form-group">
+                <label for="doctorCurrentPassword">كلمة المرور الحالية *</label>
+                <input
+                  type="password"
+                  id="doctorCurrentPassword"
+                  name="doctorCurrentPassword"
+                  dir="ltr"
+                  placeholder="••••••••"
+                  [(ngModel)]="vm.currentPassword"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="doctorNewPassword">كلمة المرور الجديدة *</label>
+                <input
+                  type="password"
+                  id="doctorNewPassword"
+                  name="doctorNewPassword"
+                  dir="ltr"
+                  minlength="6"
+                  placeholder="••••••••"
+                  [(ngModel)]="vm.newPassword"
+                  required
+                />
+                <span class="field-hint">يجب ألا تقل كلمة المرور عن 6 أحرف.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="doctorConfirmPassword">تأكيد كلمة المرور الجديدة *</label>
+                <input
+                  type="password"
+                  id="doctorConfirmPassword"
+                  name="doctorConfirmPassword"
+                  dir="ltr"
+                  placeholder="••••••••"
+                  [(ngModel)]="vm.confirmNewPassword"
+                  required
+                />
+              </div>
+
+              <div class="form-actions">
+                <button
+                  type="submit"
+                  class="primary-btn"
+                >
+                  <span>تغيير كلمة المرور</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
+
+    </main>
+  </div>
+</div>

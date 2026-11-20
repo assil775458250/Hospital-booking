@@ -1,0 +1,386 @@
+<div class="appointments-container" dir="rtl">
+  <!-- رأس الصفحة -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2 class="page-title">إدارة المواعيد</h2>
+      <p class="page-description">متابعة المواعيد الطبية وإدارة حالاتها.</p>
+    </div>
+  </div>
+
+  <!-- تنبيهات النجاح والخطأ -->
+  @if (vm.successMessage) {
+    <div class="alert-banner success-banner" role="alert">
+      <div class="alert-content">
+        <span class="alert-icon">✅</span>
+        <span>{{ vm.successMessage }}</span>
+      </div>
+      <button type="button" class="close-alert-btn" (click)="vm.dismissSuccessMessage()" aria-label="إغلاق التنبيه">✕</button>
+    </div>
+  }
+
+  @if (vm.errorMessage) {
+    <div class="alert-banner error-banner" role="alert">
+      <div class="alert-content">
+        <span class="alert-icon">⚠️</span>
+        <span>{{ vm.errorMessage }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- بطاقات إحصائية مختصرة -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-icon">📅</span>
+        <span class="stat-title">إجمالي المواعيد</span>
+      </div>
+      <div class="stat-value">{{ totalCount }}</div>
+      <div class="stat-hint">كافة المواعيد المسجلة في النظام</div>
+    </div>
+
+    <div class="stat-card stat-pending">
+      <div class="stat-header">
+        <span class="stat-icon">⏳</span>
+        <span class="stat-title">المواعيد قيد الانتظار</span>
+      </div>
+      <div class="stat-value">{{ pendingCount }}</div>
+      <div class="stat-hint">بانتظار اتخاذ إجراء الموافقة أو الرفض</div>
+    </div>
+
+    <div class="stat-card stat-approved">
+      <div class="stat-header">
+        <span class="stat-icon">✅</span>
+        <span class="stat-title">المواعيد التي تمت الموافقة عليها</span>
+      </div>
+      <div class="stat-value">{{ approvedCount }}</div>
+      <div class="stat-hint">مواعيد مقبولة ومجدولة بنجاح</div>
+    </div>
+
+    <div class="stat-card stat-cancelled">
+      <div class="stat-header">
+        <span class="stat-icon">🚫</span>
+        <span class="stat-title">المواعيد الملغاة</span>
+      </div>
+      <div class="stat-value">{{ cancelledCount }}</div>
+      <div class="stat-hint">مواعيد تم إلغاؤها</div>
+    </div>
+  </div>
+
+  <!-- شريط البحث والفلاتر -->
+  <div class="filters-card">
+    <div class="filter-group search-group">
+      <label for="searchAppointments" class="filter-label">بحث</label>
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          id="searchAppointments"
+          class="form-control search-input"
+          placeholder="ابحث برقم الموعد، اسم المريض، الهاتف، أو اسم الطبيب..."
+          [(ngModel)]="vm.searchTerm"
+          (ngModelChange)="vm.applyFilters()"
+        />
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label for="doctorFilter" class="filter-label">الطبيب</label>
+      <select
+        id="doctorFilter"
+        class="form-control form-select"
+        [(ngModel)]="vm.selectedDoctorId"
+        (ngModelChange)="vm.applyFilters()"
+      >
+        <option [ngValue]="null">كافة الأطباء</option>
+        @for (doctor of doctorsList; track doctor.id) {
+          <option [ngValue]="doctor.id">{{ doctor.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="statusFilter" class="filter-label">حالة الموعد</label>
+      <select
+        id="statusFilter"
+        class="form-control form-select"
+        [(ngModel)]="vm.selectedStatus"
+        (ngModelChange)="vm.applyFilters()"
+      >
+        <option value="">كافة الحالات</option>
+        <option value="Pending">قيد الانتظار</option>
+        <option value="Approved">تمت الموافقة</option>
+        <option value="Rejected">مرفوض</option>
+        <option value="Cancelled">ملغي</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="dateFilter" class="filter-label">تاريخ الموعد</label>
+      <input
+        type="date"
+        id="dateFilter"
+        class="form-control"
+        [(ngModel)]="vm.selectedDate"
+        (ngModelChange)="vm.applyFilters()"
+      />
+    </div>
+
+    @if (vm.searchTerm || vm.selectedDoctorId !== null || vm.selectedStatus || vm.selectedDate) {
+      <div class="filter-actions">
+        <button type="button" class="reset-btn" (click)="vm.resetFilters()">
+          <span>إعادة تعيين</span>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- جدول المواعيد وحالات الصفحة -->
+  @if (vm.isLoading) {
+    <div class="state-card loading-card">
+      <div class="state-icon">⏳</div>
+      <h3 class="state-title">جاري تحميل المواعيد...</h3>
+      <p class="state-desc">يرجى الانتظار لحظات ريثما يتم جلب قائمة المواعيد.</p>
+    </div>
+  } @else if (vm.errorMessage) {
+    <div class="state-card error-card">
+      <div class="state-icon">⚠️</div>
+      <h3 class="state-title">حدث خطأ أثناء تحميل المواعيد</h3>
+      <p class="state-desc">{{ vm.errorMessage }}</p>
+      <button type="button" class="reset-link-btn" (click)="vm.loadAppointments()">إعادة المحاولة</button>
+    </div>
+  } @else if (vm.appointments.length === 0) {
+    <div class="state-card empty-card">
+      <div class="state-icon">📋</div>
+      <h3 class="state-title">لا توجد مواعيد مسجلة حالياً</h3>
+      <p class="state-desc">لم يتم تسجيل أي مواعيد في النظام حتى الآن.</p>
+    </div>
+  } @else if (vm.filteredAppointments.length === 0) {
+    <div class="state-card empty-card">
+      <div class="state-icon">🔍</div>
+      <h3 class="state-title">لا توجد نتائج مطابقة للفلاتر</h3>
+      <p class="state-desc">لم نجد أي مواعيد تطابق خيارات البحث والفلترة المحددة. جرب تعديل الفلاتر أو إعادة تعيينها.</p>
+      <button type="button" class="reset-link-btn" (click)="vm.resetFilters()">إعادة تعيين الفلاتر</button>
+    </div>
+  } @else {
+    <div class="table-card">
+      <div class="table-meta">
+        <span class="results-count">
+          عدد المواعيد المعروضة: <strong>{{ vm.filteredCount }}</strong> من إجمالي <strong>{{ vm.totalCount }}</strong>
+        </span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="appointments-table">
+          <thead>
+            <tr>
+              <th>رقم الموعد</th>
+              <th>المريض</th>
+              <th>الطبيب</th>
+              <th>التخصص والعيادة</th>
+              <th>تاريخ الموعد</th>
+              <th class="th-time">الوقت</th>
+              <th class="th-status">الحالة</th>
+              <th class="th-actions">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (appointment of vm.filteredAppointments; track appointment.id) {
+              <tr>
+                <td class="td-number">
+                  <span class="apt-badge">{{ appointment.appointmentNumber }}</span>
+                </td>
+                <td>
+                  <div class="patient-cell">
+                    <strong class="patient-name">{{ appointment.patientName }}</strong>
+                    <span class="patient-phone ltr-text">{{ appointment.patientPhone }}</span>
+                  </div>
+                </td>
+                <td>
+                  <strong class="doctor-name">{{ appointment.doctorName }}</strong>
+                </td>
+                <td>
+                  <div class="clinic-cell">
+                    <span class="spec-tag">{{ appointment.specializationName }}</span>
+                    <span class="clinic-tag">{{ appointment.clinic }}</span>
+                  </div>
+                </td>
+                <td class="ltr-cell">{{ appointment.appointmentDate }}</td>
+                <td class="td-time">{{ appointment.startTime }} - {{ appointment.endTime }}</td>
+                <td class="td-status">
+                  <span
+                    class="status-badge"
+                    [class.status-pending]="appointment.status === 'Pending'"
+                    [class.status-approved]="appointment.status === 'Approved'"
+                    [class.status-rejected]="appointment.status === 'Rejected'"
+                    [class.status-cancelled]="appointment.status === 'Cancelled'"
+                  >
+                    <span class="status-dot"></span>
+                    {{ vm.getStatusLabel(appointment.status) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="td-actions">
+                    <button
+                      type="button"
+                      class="action-btn details-btn"
+                      (click)="vm.openDetailsModal(appointment)"
+                      title="عرض التفاصيل"
+                    >
+                      التفاصيل
+                    </button>
+
+                    <select
+                      class="table-status-select"
+                      [value]="appointment.status"
+                      (change)="onStatusChange(appointment.id, $event)"
+                      [disabled]="vm.isUpdatingStatus"
+                      title="تغيير حالة الموعد"
+                    >
+                      <option value="Pending">قيد الانتظار</option>
+                      <option value="Approved">تمت الموافقة</option>
+                      <option value="Rejected">مرفوض</option>
+                      <option value="Cancelled">ملغي</option>
+                    </select>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- نافذة تفاصيل الموعد -->
+  @if (vm.isDetailsModalOpen && vm.selectedAppointment) {
+    <div class="modal-backdrop" (click)="vm.closeDetailsModal()"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h3 id="modalTitle" class="modal-title">تفاصيل الموعد</h3>
+        <button type="button" class="modal-close-btn" (click)="vm.closeDetailsModal()" aria-label="إغلاق">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- رقم الموعد والحالة الحالية -->
+        <div class="details-highlight">
+          <div class="highlight-item">
+            <span class="highlight-label">رقم الموعد:</span>
+            <span class="highlight-code">{{ vm.selectedAppointment.appointmentNumber }}</span>
+          </div>
+          <div class="highlight-item">
+            <span class="highlight-label">الحالة الحالية:</span>
+            <span
+              class="status-badge"
+              [class.status-pending]="vm.selectedAppointment.status === 'Pending'"
+              [class.status-approved]="vm.selectedAppointment.status === 'Approved'"
+              [class.status-rejected]="vm.selectedAppointment.status === 'Rejected'"
+              [class.status-cancelled]="vm.selectedAppointment.status === 'Cancelled'"
+            >
+              <span class="status-dot"></span>
+              {{ vm.getStatusLabel(vm.selectedAppointment.status) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- شبكة بيانات الموعد -->
+        <div class="details-grid">
+          <div class="detail-item">
+            <span class="detail-label">اسم المريض</span>
+            <span class="detail-value">{{ vm.selectedAppointment.patientName }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">هاتف المريض</span>
+            <span class="detail-value ltr-text">{{ vm.selectedAppointment.patientPhone }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">اسم الطبيب</span>
+            <span class="detail-value">{{ vm.selectedAppointment.doctorName }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">التخصص</span>
+            <span class="detail-value">{{ vm.selectedAppointment.specializationName }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">العيادة</span>
+            <span class="detail-value">{{ vm.selectedAppointment.clinic }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">تاريخ الموعد</span>
+            <span class="detail-value ltr-text">{{ vm.selectedAppointment.appointmentDate }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">وقت الموعد</span>
+            <span class="detail-value ltr-text">{{ vm.selectedAppointment.startTime }} - {{ vm.selectedAppointment.endTime }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">تاريخ تقديم الطلب</span>
+            <span class="detail-value ltr-text">{{ vm.selectedAppointment.createdAt }}</span>
+          </div>
+
+          <div class="detail-item full-width">
+            <span class="detail-label">سبب الزيارة</span>
+            <span class="detail-value">{{ vm.selectedAppointment.reasonForVisit || 'غير محدد' }}</span>
+          </div>
+
+          <div class="detail-item full-width">
+            <span class="detail-label">الملاحظات</span>
+            <span class="detail-value">{{ vm.selectedAppointment.notes || 'لا توجد ملاحظات' }}</span>
+          </div>
+        </div>
+
+        <!-- خيارات تغيير الحالة داخل النافذة -->
+        <div class="modal-status-action">
+          <h4 class="action-heading">تغيير حالة الموعد:</h4>
+          <div class="status-buttons-row">
+            <button
+              type="button"
+              class="status-btn btn-approve"
+              [disabled]="vm.isUpdatingStatus || vm.selectedAppointment.status === 'Approved'"
+              (click)="vm.updateAppointmentStatus(vm.selectedAppointment.id, 'Approved')"
+            >
+              الموافقة على الموعد
+            </button>
+
+            <button
+              type="button"
+              class="status-btn btn-pending"
+              [disabled]="vm.isUpdatingStatus || vm.selectedAppointment.status === 'Pending'"
+              (click)="vm.updateAppointmentStatus(vm.selectedAppointment.id, 'Pending')"
+            >
+              قيد الانتظار
+            </button>
+
+            <button
+              type="button"
+              class="status-btn btn-reject"
+              [disabled]="vm.isUpdatingStatus || vm.selectedAppointment.status === 'Rejected'"
+              (click)="vm.updateAppointmentStatus(vm.selectedAppointment.id, 'Rejected')"
+            >
+              رفض الموعد
+            </button>
+
+            <button
+              type="button"
+              class="status-btn btn-cancel"
+              [disabled]="vm.isUpdatingStatus || vm.selectedAppointment.status === 'Cancelled'"
+              (click)="vm.updateAppointmentStatus(vm.selectedAppointment.id, 'Cancelled')"
+            >
+              إلغاء الموعد
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-close-modal" (click)="vm.closeDetailsModal()">إغلاق</button>
+      </div>
+    </div>
+  }
+</div>

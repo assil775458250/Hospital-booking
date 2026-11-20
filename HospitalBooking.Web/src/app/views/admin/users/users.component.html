@@ -1,0 +1,337 @@
+<div class="users-container" dir="rtl">
+  <!-- رأس الصفحة -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2 class="page-title">إدارة المستخدمين</h2>
+      <p class="page-description">إدارة حسابات مستخدمي النظام ومتابعة أدوارهم وحالات حساباتهم في نظام يُسر.</p>
+    </div>
+  </div>
+
+  <!-- تنبيهات النجاح والخطأ العامة -->
+  @if (vm.successMessage) {
+    <div class="alert-banner success-banner" role="alert">
+      <div class="alert-content">
+        <span class="alert-icon">✅</span>
+        <span>{{ vm.successMessage }}</span>
+      </div>
+      <button type="button" class="close-alert-btn" (click)="vm.dismissSuccessMessage()" aria-label="إغلاق التنبيه">✕</button>
+    </div>
+  }
+
+  @if (vm.formError && !vm.isModalOpen) {
+    <div class="alert-banner error-banner" role="alert">
+      <div class="alert-content">
+        <span class="alert-icon">⚠️</span>
+        <span>{{ vm.formError }}</span>
+      </div>
+      <button type="button" class="close-alert-btn" (click)="vm.dismissFormError()" aria-label="إغلاق التنبيه">✕</button>
+    </div>
+  }
+
+  <!-- بطاقات الإحصائيات -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-icon">👥</span>
+        <span class="stat-title">إجمالي المستخدمين</span>
+      </div>
+      <div class="stat-value">{{ totalUsersCount }}</div>
+      <div class="stat-hint">كافة الحسابات المسجلة في النظام</div>
+    </div>
+
+    <div class="stat-card stat-admin">
+      <div class="stat-header">
+        <span class="stat-icon">🛡️</span>
+        <span class="stat-title">المسؤولون</span>
+      </div>
+      <div class="stat-value">{{ adminCount }}</div>
+      <div class="stat-hint">مسؤولو النظام بصلاحيات كاملة</div>
+    </div>
+
+    <div class="stat-card stat-doctor">
+      <div class="stat-header">
+        <span class="stat-icon">👨‍⚕️</span>
+        <span class="stat-title">الأطباء</span>
+      </div>
+      <div class="stat-value">{{ doctorCount }}</div>
+      <div class="stat-hint">أطباء مسجلون في مختلف التخصصات</div>
+    </div>
+
+    <div class="stat-card stat-patient">
+      <div class="stat-header">
+        <span class="stat-icon">🧑‍🦱</span>
+        <span class="stat-title">المرضى</span>
+      </div>
+      <div class="stat-value">{{ patientCount }}</div>
+      <div class="stat-hint">مرضى مسجلون في النظام</div>
+    </div>
+
+    <div class="stat-card stat-active">
+      <div class="stat-header">
+        <span class="stat-icon">✅</span>
+        <span class="stat-title">الحسابات النشطة</span>
+      </div>
+      <div class="stat-value">{{ activeCount }}</div>
+      <div class="stat-hint">حسابات مفعلة وقيد الاستخدام</div>
+    </div>
+
+    <div class="stat-card stat-inactive">
+      <div class="stat-header">
+        <span class="stat-icon">⏸️</span>
+        <span class="stat-title">الحسابات غير النشطة</span>
+      </div>
+      <div class="stat-value">{{ inactiveCount }}</div>
+      <div class="stat-hint">حسابات معطلة أو موقوفة</div>
+    </div>
+  </div>
+
+  <!-- شريط البحث والفلاتر -->
+  <div class="filters-card">
+    <div class="filter-group search-group">
+      <label for="searchUser" class="filter-label">بحث</label>
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          id="searchUser"
+          class="form-control search-input"
+          placeholder="ابحث بالاسم أو البريد الإلكتروني أو الهاتف..."
+          [(ngModel)]="vm.searchTerm"
+          (ngModelChange)="vm.applyFilters()"
+        />
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label for="roleFilter" class="filter-label">الدور</label>
+      <select
+        id="roleFilter"
+        class="form-control form-select"
+        [(ngModel)]="vm.selectedRole"
+        (ngModelChange)="vm.applyFilters()"
+      >
+        <option value="">جميع الأدوار</option>
+        <option value="Patient">مريض</option>
+        <option value="Doctor">طبيب</option>
+        <option value="Admin">مسؤول</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="statusFilter" class="filter-label">حالة الحساب</label>
+      <select
+        id="statusFilter"
+        class="form-control form-select"
+        [(ngModel)]="vm.selectedStatus"
+        (ngModelChange)="vm.applyFilters()"
+      >
+        <option value="">جميع الحالات</option>
+        <option value="Active">نشط</option>
+        <option value="Inactive">غير نشط</option>
+      </select>
+    </div>
+
+    @if (vm.searchTerm || vm.selectedRole || vm.selectedStatus) {
+      <div class="filter-actions">
+        <button type="button" class="reset-btn" (click)="vm.resetFilters()">
+          <span>إعادة تعيين</span>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- جدول المستخدمين -->
+  <div class="table-card">
+    <div class="table-meta">
+      <span class="results-count">
+        عدد المستخدمين المعروضين: <strong>{{ vm.filteredCount }}</strong> من إجمالي <strong>{{ vm.totalCount }}</strong>
+      </span>
+    </div>
+
+    @if (vm.isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>جاري تحميل بيانات المستخدمين...</p>
+      </div>
+    } @else if (vm.filteredUsers.length > 0) {
+      <div class="table-responsive">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th class="th-id">رقم المستخدم</th>
+              <th>الاسم الكامل</th>
+              <th>البريد الإلكتروني</th>
+              <th>رقم الهاتف</th>
+              <th class="th-role">الدور</th>
+              <th class="th-status">حالة الحساب</th>
+              <th>تاريخ الإنشاء</th>
+              <th class="th-actions">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of vm.filteredUsers; track user.id) {
+              <tr>
+                <td class="td-id">#{{ user.id }}</td>
+                <td class="user-name">
+                  <strong>{{ user.fullName }}</strong>
+                </td>
+                <td class="ltr-cell">{{ user.email }}</td>
+                <td class="ltr-cell">{{ user.phoneNumber }}</td>
+                <td class="td-role">
+                  <span
+                    class="role-badge"
+                    [class.role-admin]="user.role === 'Admin'"
+                    [class.role-doctor]="user.role === 'Doctor'"
+                    [class.role-patient]="user.role === 'Patient'"
+                  >
+                    {{ vm.getRoleLabel(user.role) }}
+                  </span>
+                </td>
+                <td class="td-status">
+                  <span
+                    class="status-badge"
+                    [class.status-active]="user.accountStatus === 'Active'"
+                    [class.status-inactive]="user.accountStatus === 'Inactive'"
+                  >
+                    <span class="status-dot"></span>
+                    {{ vm.getStatusLabel(user.accountStatus) }}
+                  </span>
+                </td>
+                <td class="date-cell">{{ user.createdAt }}</td>
+                <td class="td-actions">
+                  <div class="actions-wrapper">
+                    <button
+                      type="button"
+                      class="action-btn edit-btn"
+                      (click)="vm.openEditModal(user)"
+                      title="تعديل بيانات المستخدم"
+                    >
+                      تعديل
+                    </button>
+
+                    <select
+                      class="role-select"
+                      [ngModel]="user.role"
+                      (ngModelChange)="vm.updateUserRole(user.id, $event)"
+                      title="تغيير دور المستخدم"
+                    >
+                      <option value="Patient">مريض</option>
+                      <option value="Doctor">طبيب</option>
+                      <option value="Admin">مسؤول</option>
+                    </select>
+
+                    @if (user.accountStatus === 'Active') {
+                      <button
+                        type="button"
+                        class="action-btn deactivate-btn"
+                        [disabled]="vm.isCurrentUser(user.id)"
+                        (click)="vm.updateUserStatus(user.id, 'Inactive')"
+                        [title]="vm.isCurrentUser(user.id) ? 'لا يمكن تعطيل حسابك الشخصي' : 'تعطيل الحساب'"
+                      >
+                        تعطيل
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="action-btn activate-btn"
+                        (click)="vm.updateUserStatus(user.id, 'Active')"
+                        title="تفعيل الحساب"
+                      >
+                        تفعيل
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <!-- الحالات الفارغة -->
+      <div class="empty-results">
+        @if (vm.totalCount === 0) {
+          <span class="empty-icon">👥</span>
+          <h4>لا يوجد مستخدمون حتى الآن</h4>
+          <p>لم يتم تسجيل أي حسابات مستخدمين في النظام حتى الآن.</p>
+        } @else {
+          <span class="empty-icon">🔍</span>
+          <h4>لا توجد نتائج مطابقة</h4>
+          <p>لم نتمكن من العثور على أي مستخدم يطابق معايير البحث أو التصفية الحالية.</p>
+          <button type="button" class="reset-link-btn" (click)="vm.resetFilters()">
+            إعادة تعيين الفلاتر
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- نافذة تعديل بيانات المستخدم -->
+  @if (vm.isModalOpen) {
+    <div class="modal-backdrop" (click)="vm.closeModal()"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" [attr.aria-label]="'تعديل بيانات المستخدم'">
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <h3 class="modal-title">تعديل بيانات المستخدم</h3>
+          <p class="modal-subtitle">تحديث الاسم الكامل والبريد الإلكتروني ورقم الهاتف.</p>
+        </div>
+        <button type="button" class="modal-close-btn" (click)="vm.closeModal()" aria-label="إغلاق النافذة">✕</button>
+      </div>
+
+      @if (vm.formError) {
+        <div class="form-error-banner" role="alert">
+          <span class="alert-icon">⚠️</span>
+          <span>{{ vm.formError }}</span>
+        </div>
+      }
+
+      <form (ngSubmit)="vm.saveUser()" class="modal-form">
+        <div class="form-field">
+          <label for="userName" class="field-label">الاسم الكامل *</label>
+          <input
+            type="text"
+            id="userName"
+            name="fullName"
+            class="form-control"
+            placeholder="أدخل الاسم الكامل..."
+            [(ngModel)]="vm.userForm.fullName"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="userEmail" class="field-label">البريد الإلكتروني *</label>
+          <input
+            type="email"
+            id="userEmail"
+            name="email"
+            class="form-control ltr-input"
+            dir="ltr"
+            placeholder="name@example.com"
+            [(ngModel)]="vm.userForm.email"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="userPhone" class="field-label">رقم الهاتف *</label>
+          <input
+            type="tel"
+            id="userPhone"
+            name="phoneNumber"
+            class="form-control ltr-input"
+            dir="ltr"
+            placeholder="05XXXXXXXX"
+            [(ngModel)]="vm.userForm.phoneNumber"
+            required
+          />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="vm.closeModal()">إلغاء</button>
+          <button type="submit" class="btn-save">حفظ التعديلات</button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

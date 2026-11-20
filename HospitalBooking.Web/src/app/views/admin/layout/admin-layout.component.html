@@ -1,0 +1,149 @@
+<div class="layout-container" dir="rtl">
+  <!-- خلفية داكنة للشاشات الصغيرة عند فتح القائمة -->
+  @if (isSidebarOpen) {
+    <div class="sidebar-backdrop" (click)="closeSidebar()"></div>
+  }
+
+  <!-- القائمة الجانبية -->
+  <aside class="sidebar" [class.open]="isSidebarOpen">
+    <div class="sidebar-header">
+      <img src="/images/yusr.jpeg" alt="شعار نظام يُسر" class="sidebar-logo" />
+      <div class="brand-text">
+        <h1 class="brand-name">نظام يُسر</h1>
+        <span class="portal-badge">بوابة المسؤول</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list">
+        <!-- 1. لوحة التحكم (مفعّلة) -->
+        <li class="nav-item">
+          <a
+            routerLink="/admin/dashboard"
+            routerLinkActive="active"
+            (click)="closeSidebar()"
+            class="nav-link"
+          >
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">لوحة التحكم</span>
+          </a>
+        </li>
+
+        <!-- 2. إدارة الأطباء (مفعّلة) -->
+        <li class="nav-item">
+          <a
+            routerLink="/admin/doctors"
+            routerLinkActive="active"
+            (click)="closeSidebar()"
+            class="nav-link"
+          >
+            <span class="nav-icon">👨‍⚕️</span>
+            <span class="nav-label">إدارة الأطباء</span>
+          </a>
+        </li>
+
+        <!-- 3. إدارة المرضى (مفعّلة) -->
+        <li class="nav-item">
+          <a
+            routerLink="/admin/patients"
+            routerLinkActive="active"
+            (click)="closeSidebar()"
+            class="nav-link"
+          >
+            <span class="nav-icon">👥</span>
+            <span class="nav-label">إدارة المرضى</span>
+          </a>
+        </li>
+
+        <!-- 4. إدارة المواعيد (مفعّلة) -->
+        <li class="nav-item">
+          <a
+            routerLink="/admin/appointments"
+            routerLinkActive="active"
+            (click)="closeSidebar()"
+            class="nav-link"
+          >
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">إدارة المواعيد</span>
+          </a>
+        </li>
+
+        <!-- 5. إدارة التخصصات (مفعّلة) -->
+        <li class="nav-item">
+          <a
+            routerLink="/admin/specializations"
+            routerLinkActive="active"
+            (click)="closeSidebar()"
+            class="nav-link"
+          >
+            <span class="nav-icon">🩺</span>
+            <span class="nav-label">إدارة التخصصات</span>
+          </a>
+        </li>
+
+        <!-- 6. إدارة المستخدمين (مفعّلة) -->
+        <li class="nav-item">
+          <a
+            routerLink="/admin/users"
+            routerLinkActive="active"
+            (click)="closeSidebar()"
+            class="nav-link"
+          >
+            <span class="nav-icon">🛡️</span>
+            <span class="nav-label">إدارة المستخدمين</span>
+          </a>
+        </li>
+
+        <!-- 7. الملف الشخصي (مفعّلة) -->
+        <li class="nav-item">
+          <a
+            routerLink="/admin/profile"
+            routerLinkActive="active"
+            (click)="closeSidebar()"
+            class="nav-link"
+          >
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">الملف الشخصي</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- المنطقة الرئيسية للمحتوى -->
+  <div class="main-wrapper">
+    <!-- الشريط العلوي -->
+    <header class="topbar">
+      <div class="topbar-right">
+        <button
+          type="button"
+          class="menu-toggle-btn"
+          (click)="toggleSidebar()"
+          aria-label="تبديل القائمة الجانبية"
+        >
+          <span class="menu-icon">☰</span>
+        </button>
+        <span class="topbar-title">لوحة تحكم النظام الطبي</span>
+      </div>
+
+      <div class="topbar-left">
+        <div class="user-info">
+          <span class="user-avatar">👤</span>
+          <div class="user-meta">
+            <span class="user-name">{{ currentUser?.fullName || 'المسؤول' }}</span>
+            <span class="user-role">مسؤول النظام</span>
+          </div>
+        </div>
+
+        <button type="button" class="logout-btn" (click)="logout()">
+          <span>تسجيل الخروج</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- منطقة عرض الصفحات الفرعية -->
+    <main class="content-area">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

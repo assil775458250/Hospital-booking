@@ -1,0 +1,244 @@
+<div class="patients-container" dir="rtl">
+  <!-- رأس الصفحة -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2 class="page-title">إدارة المرضى</h2>
+      <p class="page-description">عرض ومتابعة قائمة المرضى المسجلين وسجلات مواعيدهم في نظام يُسر.</p>
+    </div>
+  </div>
+
+  <!-- رسالة النجاح -->
+  @if (vm.successMessage) {
+    <div class="success-banner" role="alert">
+      <div class="success-content">
+        <span class="success-icon">✅</span>
+        <span>{{ vm.successMessage }}</span>
+      </div>
+      <button type="button" class="close-alert-btn" (click)="vm.dismissSuccessMessage()" aria-label="إغلاق التنبيه">✕</button>
+    </div>
+  }
+
+  <!-- شريط البحث -->
+  <div class="filters-card">
+    <div class="filter-group search-group">
+      <label for="searchPatient" class="filter-label">بحث</label>
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          id="searchPatient"
+          class="form-control search-input"
+          placeholder="ابحث بالاسم، البريد أو الهاتف..."
+          [(ngModel)]="vm.searchTerm"
+          (ngModelChange)="vm.applyFilters()"
+        />
+      </div>
+    </div>
+
+    @if (vm.searchTerm) {
+      <div class="filter-actions">
+        <button type="button" class="reset-btn" (click)="vm.resetFilters()">
+          <span>إعادة تعيين</span>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- جدول المرضى -->
+  <div class="table-card">
+    <div class="table-meta">
+      <span class="results-count">
+        عدد المرضى المعروضين: <strong>{{ vm.filteredCount }}</strong> من إجمالي <strong>{{ vm.totalCount }}</strong>
+      </span>
+    </div>
+
+    @if (vm.filteredPatients.length > 0) {
+      <div class="table-responsive">
+        <table class="patients-table">
+          <thead>
+            <tr>
+              <th class="th-avatar">الرمز</th>
+              <th>اسم المريض</th>
+              <th>الهاتف</th>
+              <th>البريد الإلكتروني</th>
+              <th>تاريخ التسجيل</th>
+              <th class="th-center">عدد المواعيد</th>
+              <th class="th-actions">العمليات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (patient of vm.filteredPatients; track patient.id) {
+              <tr>
+                <td class="td-avatar">
+                  <div class="patient-avatar-fallback">
+                    {{ vm.getInitial(patient.fullName) }}
+                  </div>
+                </td>
+                <td class="patient-name">
+                  <strong>{{ patient.fullName }}</strong>
+                </td>
+                <td class="ltr-cell">{{ patient.phoneNumber }}</td>
+                <td class="ltr-cell">{{ patient.email }}</td>
+                <td class="ltr-cell">{{ patient.createdAt }}</td>
+                <td class="td-center">
+                  <span class="appointments-badge" title="إجمالي المواعيد: {{ patient.statistics.totalAppointments }}">
+                    {{ patient.statistics.totalAppointments }}
+                  </span>
+                </td>
+                <td class="td-actions">
+                  <button
+                    type="button"
+                    class="action-btn details-btn"
+                    (click)="vm.openDetailsModal(patient)"
+                    title="عرض التفاصيل"
+                  >
+                    عرض التفاصيل
+                  </button>
+                  <button
+                    type="button"
+                    class="action-btn edit-btn"
+                    (click)="vm.openEditModal(patient)"
+                    title="تعديل البيانات"
+                  >
+                    تعديل
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="empty-results">
+        <span class="empty-icon">🔍</span>
+        <h4>لا توجد نتائج مطابقة</h4>
+        <p>لم نجد أي مرضى يطابقون معايير البحث المحددة. جرب تعديل الكلمات أو إعادة تعيين البحث.</p>
+        <button type="button" class="reset-link-btn" (click)="vm.resetFilters()">إعادة تعيين البحث</button>
+      </div>
+    }
+  </div>
+
+  <!-- نافذة عرض التفاصيل -->
+  @if (vm.isDetailsModalOpen && vm.selectedPatientForDetails) {
+    <div class="modal-backdrop" (click)="vm.closeDetailsModal()"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="detailsTitle">
+      <div class="modal-header">
+        <h3 id="detailsTitle" class="modal-title">تفاصيل المريض</h3>
+        <button type="button" class="modal-close-btn" (click)="vm.closeDetailsModal()" aria-label="إغلاق">✕</button>
+      </div>
+
+      <div class="modal-body details-body">
+        <div class="details-section">
+          <h4 class="section-heading">البيانات الأساسية</h4>
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">الاسم الكامل</span>
+              <span class="detail-value">{{ vm.selectedPatientForDetails.fullName }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">رقم الهاتف</span>
+              <span class="detail-value ltr-text">{{ vm.selectedPatientForDetails.phoneNumber }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">البريد الإلكتروني</span>
+              <span class="detail-value ltr-text">{{ vm.selectedPatientForDetails.email }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">تاريخ التسجيل</span>
+              <span class="detail-value ltr-text">{{ vm.selectedPatientForDetails.createdAt }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="details-section">
+          <h4 class="section-heading">إحصائيات المواعيد</h4>
+          <div class="stats-grid">
+            <div class="stat-card stat-total">
+              <span class="stat-num">{{ vm.selectedPatientForDetails.statistics.totalAppointments }}</span>
+              <span class="stat-name">إجمالي المواعيد</span>
+            </div>
+            <div class="stat-card stat-upcoming">
+              <span class="stat-num">{{ vm.selectedPatientForDetails.statistics.upcomingAppointments }}</span>
+              <span class="stat-name">المواعيد القادمة</span>
+            </div>
+            <div class="stat-card stat-completed">
+              <span class="stat-num">{{ vm.selectedPatientForDetails.statistics.completedAppointments }}</span>
+              <span class="stat-name">المواعيد المكتملة</span>
+            </div>
+            <div class="stat-card stat-cancelled">
+              <span class="stat-num">{{ vm.selectedPatientForDetails.statistics.cancelledAppointments }}</span>
+              <span class="stat-name">المواعيد الملغاة</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="vm.closeDetailsModal()">إغلاق</button>
+      </div>
+    </div>
+  }
+
+  <!-- نافذة تعديل البيانات -->
+  @if (vm.isEditModalOpen) {
+    <div class="modal-backdrop" (click)="vm.closeEditModal()"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+      <div class="modal-header">
+        <h3 id="editTitle" class="modal-title">تعديل بيانات المريض</h3>
+        <button type="button" class="modal-close-btn" (click)="vm.closeEditModal()" aria-label="إغلاق">✕</button>
+      </div>
+
+      @if (vm.formError) {
+        <div class="form-error-banner" role="alert">
+          <span>⚠️ {{ vm.formError }}</span>
+        </div>
+      }
+
+      <form (ngSubmit)="vm.savePatient()" class="modal-form">
+        <div class="form-field">
+          <label for="editFullName" class="field-label">الاسم الكامل *</label>
+          <input
+            type="text"
+            id="editFullName"
+            name="fullName"
+            class="form-control"
+            placeholder="أدخل اسم المريض الكامل"
+            [(ngModel)]="vm.editForm.fullName"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="editPhone" class="field-label">رقم الهاتف *</label>
+          <input
+            type="text"
+            id="editPhone"
+            name="phoneNumber"
+            class="form-control"
+            placeholder="مثال: 0501234567"
+            [(ngModel)]="vm.editForm.phoneNumber"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="editEmail" class="field-label">البريد الإلكتروني *</label>
+          <input
+            type="email"
+            id="editEmail"
+            name="email"
+            class="form-control"
+            placeholder="patient@example.com"
+            [(ngModel)]="vm.editForm.email"
+            required
+          />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="vm.closeEditModal()">إلغاء</button>
+          <button type="submit" class="btn-save">حفظ التعديلات</button>
+        </div>
+      </form>
+    </div>
+  }
+</div>
