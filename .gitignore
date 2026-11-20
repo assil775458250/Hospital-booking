@@ -1,3 +1,12 @@
+# .NET
 **/bin/
 **/obj/
 **/.vs/
+
+# Node & Angular (هذا هو السطر الحاسم الذي يحل المشكلة)
+**/node_modules/
+**/.angular/
+**/dist/
+
+# مخرجات الأدوات والتقارير
+graphify-out/

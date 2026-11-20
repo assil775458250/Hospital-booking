@@ -1,0 +1,59 @@
+<div class="dashboard-container">
+  <!-- رأس الصفحة والترحيب -->
+  <div class="welcome-section">
+    <div class="welcome-text">
+      <h2 class="welcome-title">مرحباً بك</h2>
+      <p class="welcome-subtitle">إليك ملخص مؤشرات وإحصائيات نظام يُسر لإدارة حجز المواعيد الطبية.</p>
+    </div>
+  </div>
+
+  <!-- بطاقات الإحصائيات الأربع -->
+  <div class="stats-grid">
+    @for (stat of stats; track stat.title) {
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-icon">{{ stat.icon }}</span>
+          <span class="stat-title">{{ stat.title }}</span>
+        </div>
+        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-hint">{{ stat.hint }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- قسم أحدث المواعيد -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-icon">📋</span>
+        <h3 class="section-title">أحدث المواعيد</h3>
+      </div>
+    </div>
+
+    @if (vm.isLoading) {
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <p class="empty-title">جاري تحميل البيانات...</p>
+        <p class="empty-desc">يرجى الانتظار لحظات ريثما يتم جلب أحدث المؤشرات والمواعيد.</p>
+      </div>
+    } @else if (vm.errorMessage) {
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <p class="empty-title">حدث خطأ أثناء تحميل البيانات</p>
+        <p class="empty-desc">{{ vm.errorMessage }}</p>
+      </div>
+    } @else if (vm.recentAppointments.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <p class="empty-title">لا توجد بيانات مواعيد معروضة حالياً</p>
+        <p class="empty-desc">ستظهر بيانات المواعيد المسجلة هنا تلقائياً بعد ربط الـ Backend وجلب البيانات الفعلية.</p>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <p class="empty-title">تم تحميل المواعيد بنجاح</p>
+        <p class="empty-desc">تم جلب بيانات المواعيد بنجاح وسيتم عرض تفاصيلها عند تجهيز جدول المواعيد.</p>
+      </div>
+    }
+  </div>
+</div>
