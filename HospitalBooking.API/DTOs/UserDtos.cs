@@ -36,4 +36,10 @@ namespace HospitalBooking.API.DTOs
         [Required(ErrorMessage = "الدور الجديد مطلوب")]
         public string Role { get; set; } = string.Empty; // "Patient", "Doctor", "Admin"
     }
+
+    public class UpdateUserStatusDto
+    {
+        [Required(ErrorMessage = "حالة الحساب مطلوبة")]
+        public string AccountStatus { get; set; } = string.Empty; // "Active", "Inactive"
+    }
 }

@@ -80,5 +80,19 @@ namespace HospitalBooking.API.Controllers
             var result = await _adminService.GetPatientsAsync(status, search);
             return HandleResult(result);
         }
+
+        // 38. PUT /api/admin/users/{id}/status
+        [HttpPut("users/{id}/status")]
+        public async Task<IActionResult> UpdateUserStatus(int id , [FromBody] UpdateUserStatusDto dto)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _adminService.UpdateUserStatusAsync(id, dto);
+            return HandleResult(result);
+        }
+
     }
 }
