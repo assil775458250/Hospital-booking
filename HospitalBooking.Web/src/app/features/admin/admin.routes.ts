@@ -6,7 +6,7 @@ import { DoctorsComponent } from "../../views/admin/doctors/doctors.component";
 import { PatientsComponent } from "../../views/admin/patients/patients.component";
 import { AppointmentsComponent } from "../../views/admin/appointments/appointments.component";
 import { SpecializationsComponent } from "../../views/admin/specializations/specializations.component";
-import { UsersComponent } from "../../views/admin/users/users.component";
+import { UsersComponent } from "./users/users.component";
 import { AdminProfileComponent } from "../../views/admin/profile/admin-profile.component";
 
 export const ADMIN_ROUTES: Routes = [

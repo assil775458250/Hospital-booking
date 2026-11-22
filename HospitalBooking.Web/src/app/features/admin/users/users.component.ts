@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { UsersViewModel } from '../../../viewmodels/admin/users/users.view-model';
+import { UsersViewModel } from './users.viewmodel';
 
 @Component({
   selector: 'app-admin-users',

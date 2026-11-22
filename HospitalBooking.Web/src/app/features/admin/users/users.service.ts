@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../../core/config/api.config';
 import { inject, Injectable } from '@angular/core';
 import { Observable} from 'rxjs';
 import {
@@ -6,10 +7,9 @@ import {
   UpdateUserStatusRequest,
   User,
   UserFilters
-} from '../../../models/admin/users/user.model';
+} from './user.model';
 import { IUsersService } from './users.service.interface';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { API_BASE_URL } from '../../../core/config/api.config';
 
 @Injectable({
   providedIn: 'root',

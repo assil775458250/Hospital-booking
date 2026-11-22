@@ -5,7 +5,7 @@ import {
   ChangeAdminPasswordRequest,
   UpdateAdminProfileRequest,
 } from '../../../models/admin/profile/admin-profile.model';
-import { UsersService } from '../users/users.service';
+import { UsersService } from '../../../features/admin/users/users.service';
 import { IAdminProfileService } from './admin-profile.service.interface';
 
 @Injectable({

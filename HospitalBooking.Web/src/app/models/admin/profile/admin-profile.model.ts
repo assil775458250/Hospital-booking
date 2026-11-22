@@ -1,4 +1,4 @@
-import { UserRole, UserStatus } from '../users/user.model';
+import { UserRole, UserStatus } from '../../../features/admin/users/user.model';
 
 export interface AdminProfile {
   id: number;
