@@ -1,11 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AuthService } from '../../services/auth/auth.service';
-import { AuthSessionService } from '../../core/auth/auth-session.service';
-import { LoginRequest } from '../../models/auth/login-request.model';
-import { LoginResponse } from '../../models/auth/login-response.model';
-import { DEMO_MODE } from '../../core/config/api.config';
+import { AuthService } from '../../../core/auth/auth.service';
+import { AuthSessionService } from '../../../core/auth/auth-session.service';
+import { LoginRequest } from '../../../core/models/auth/login-request.model';
+import { LoginResponse } from '../../../core/models/auth/login-response.model';
 
 @Injectable()
 export class LoginViewModel {
@@ -29,11 +28,6 @@ export class LoginViewModel {
       return;
     }
 
-    if (DEMO_MODE) {
-      this.loginInDemoMode(identifier);
-      return;
-    }
-
     const credentials: LoginRequest = {
       emailOrPhone: identifier,
       password: pwd,
@@ -52,39 +46,6 @@ export class LoginViewModel {
       },
     });
   }
-
-  private loginInDemoMode(identifier: string): void {
-  this.isLoading = false;
-
-  const email = identifier.trim().toLowerCase();
-  const isDoctor = email === 'doctor@demo.local';
-  const isAdmin = email === 'admin@demo.local';
-
-  if (!isDoctor && !isAdmin) {
-    this.errorMessage = 'استخدم doctor@demo.local للطبيب أو admin@demo.local للمدير.';
-    return;
-  }
-
-  const role = isDoctor ? 'Doctor' : 'Admin';
-  const userId = isDoctor ? 101 : 1;
-
-  const demoResponse: LoginResponse = {
-    token: 'demo-token',
-    userId,
-    role,
-    user: {
-      id: userId,
-      fullName: isDoctor ? 'طبيب تجريبي' : 'مدير تجريبي',
-      email,
-      phoneNumber: identifier,
-      role,
-      accountStatus: 'Active',
-      createdAt: new Date().toISOString(),
-    },
-  };
-
-  this.handleLoginSuccess(demoResponse);
-}
 
   private handleLoginSuccess(response: LoginResponse): void {
     if (

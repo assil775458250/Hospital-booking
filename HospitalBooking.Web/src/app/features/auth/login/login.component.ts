@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { LoginViewModel } from '../../../viewmodels/auth/login.viewmodel';
+import { LoginViewModel } from './login.viewmodel';
 
 @Component({
   selector: 'app-login',
