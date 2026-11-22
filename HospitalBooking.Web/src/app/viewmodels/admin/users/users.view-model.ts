@@ -35,6 +35,14 @@ export class UsersViewModel {
   users: User[] = [];
   filteredUsers: User[] = [];
 
+    // إحصائيات المستخدمين
+  totalUsersCount = 0;
+  adminCount = 0;
+  doctorCount = 0;
+  patientCount = 0;
+  activeCount = 0;
+  inactiveCount = 0;
+
   // حالة نافذة تعديل بيانات المستخدم
   isModalOpen = false;
   isEditMode = false;
@@ -53,10 +61,11 @@ export class UsersViewModel {
       next: (data) => {
         this.users = data;
         this.applyFilters();
+        this.updateStats();
         this.isLoading = false;
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحميل بيانات المستخدمين.';
+        this.formError = err.error?.message ||err.error?.title || 'حدث خطأ أثناء تحميل بيانات المستخدمين.';
         this.isLoading = false;
       },
     });
@@ -146,7 +155,7 @@ export class UsersViewModel {
         this.closeModal();
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحديث بيانات المستخدم.';
+        this.formError = err.error?.message || err.error?.title || 'حدث خطأ أثناء تحديث بيانات المستخدم.';
       },
     });
   }
@@ -175,7 +184,7 @@ export class UsersViewModel {
         this.loadUsers();
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تغيير دور المستخدم.';
+        this.formError = err.error?.message || err.error?.title || 'حدث خطأ أثناء تغيير دور المستخدم.';
       },
     });
   }
@@ -210,7 +219,7 @@ export class UsersViewModel {
         this.loadUsers();
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحديث حالة حساب المستخدم.';
+        this.formError = err.error?.message || err.error?.title || 'حدث خطأ أثناء تحديث حالة حساب المستخدم.';
       },
     });
   }
@@ -270,5 +279,30 @@ export class UsersViewModel {
 
   get filteredCount(): number {
     return this.filteredUsers.length;
+  }
+
+    private updateStats(): void {
+    this.totalUsersCount = this.users.length;
+    this.adminCount = 0;
+    this.doctorCount = 0;
+    this.patientCount = 0;
+    this.activeCount = 0;
+    this.inactiveCount = 0;
+
+    for (const user of this.users) {
+      if (user.role === 'Admin') {
+        this.adminCount++;
+      } else if (user.role === 'Doctor') {
+        this.doctorCount++;
+      } else if (user.role === 'Patient') {
+        this.patientCount++;
+      }
+
+      if (user.accountStatus === 'Active') {
+        this.activeCount++;
+      } else if (user.accountStatus === 'Inactive') {
+        this.inactiveCount++;
+      }
+    }
   }
 }
