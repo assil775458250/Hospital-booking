@@ -324,5 +324,35 @@ namespace HospitalBooking.API.Services.Admin
 
             return ServiceResponse<List<PatientDto>>.Ok(result);
         }
+        public async Task<ServiceResponse<UserDto>> UpdateUserStatusAsync(int id, UpdateUserStatusDto dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == id);
+            if (user == null)
+            {
+                return ServiceResponse<UserDto>.Fail("المستخدم غير موجود", 404);   
+            } 
+
+            var isNewStatusActive = dto.AccountStatus.Equals("Active", StringComparison.OrdinalIgnoreCase);
+            var isNewStatusInactive = dto.AccountStatus.Equals("Inactive", StringComparison.OrdinalIgnoreCase);
+
+            if (! isNewStatusActive && !isNewStatusInactive)
+            {
+                return ServiceResponse<UserDto>.Fail("حالة الحساب المحددة غير صالحة. الحالات المتاحة: Active, Inactive", 400);
+            }
+
+             user.IsActive = isNewStatusActive;
+             await _context.SaveChangesAsync();
+
+             return ServiceResponse<UserDto>.Ok(new UserDto
+                {
+                    Id = user.UserId,
+                    FullName = user.FullName,
+                    Email = user.Email ?? string.Empty,
+                    PhoneNumber = user.PhoneNumber ?? string.Empty,
+                    Role = user.Role.ToString(),
+                    AccountStatus = user.IsActive ? "Active" : "Inactive",
+                    CreatedAt = user.CreatedAt
+                });
+        }
     }
 }

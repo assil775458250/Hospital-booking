@@ -66,7 +66,7 @@ export class DoctorsViewModel {
         callback?.();
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحميل بيانات التخصصات.';
+        this.formError = this.extractApiErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات التخصصات.');
       },
     });
   }
@@ -78,7 +78,7 @@ export class DoctorsViewModel {
         this.applyFilters();
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحميل بيانات الأطباء.';
+        this.formError = this.extractApiErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات الأطباء.');
       },
     });
   }
@@ -132,7 +132,7 @@ export class DoctorsViewModel {
         this.isModalOpen = true;
       },
       error: (err) => {
-        this.formError = err?.message || 'تعذر تحميل خيارات التخصصات. يرجى المحاولة لاحقًا.';
+        this.formError = this.extractApiErrorMessage(err, 'تعذر تحميل خيارات التخصصات. يرجى المحاولة لاحقًا.');
         this.isModalOpen = false;
       },
     });
@@ -168,7 +168,7 @@ export class DoctorsViewModel {
         this.isModalOpen = true;
       },
       error: (err) => {
-        this.formError = err?.message || 'تعذر تحميل بيانات التخصصات.';
+        this.formError = this.extractApiErrorMessage(err, 'تعذر تحميل بيانات التخصصات.');
         this.isModalOpen = false;
       },
     });
@@ -227,7 +227,7 @@ export class DoctorsViewModel {
           this.closeModal();
         },
         error: (err) => {
-          this.formError = err?.message || 'حدث خطأ أثناء تحديث بيانات الطبيب.';
+          this.formError = this.extractApiErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات الطبيب.');
         },
       });
     } else {
@@ -247,7 +247,7 @@ export class DoctorsViewModel {
           this.closeModal();
         },
         error: (err) => {
-          this.formError = err?.message || 'حدث خطأ أثناء إضافة الطبيب.';
+          this.formError = this.extractApiErrorMessage(err, 'حدث خطأ أثناء إضافة الطبيب.');
         },
       });
     }
@@ -263,7 +263,7 @@ export class DoctorsViewModel {
         this.loadDoctors();
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تغيير حالة الحساب.';
+        this.formError = this.extractApiErrorMessage(err, 'حدث خطأ أثناء تغيير حالة الحساب.');
       },
     });
   }

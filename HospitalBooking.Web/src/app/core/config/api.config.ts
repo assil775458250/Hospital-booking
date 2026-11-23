@@ -4,6 +4,4 @@
  * - HTTPS: https://localhost:7268 (العنوان الافتراضي المعتمد)
  * - HTTP:  http://localhost:5087
  */
-export const API_BASE_URL = 'https://localhost:7268';
-
-export const DEMO_MODE = true;
+export const API_BASE_URL = 'https://localhost:5087';

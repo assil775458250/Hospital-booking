@@ -7,6 +7,6 @@ import {
 
 export interface IAdminProfileService {
   getProfile(id: number): Observable<AdminProfile>;
-  updateProfile(id: number, data: UpdateAdminProfileRequest): Observable<AdminProfile>;
+  updateProfile(id: number, data: UpdateAdminProfileRequest): Observable<void>;
   changePassword(id: number, data: ChangeAdminPasswordRequest): Observable<void>;
 }

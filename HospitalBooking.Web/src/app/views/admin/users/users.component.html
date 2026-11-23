@@ -35,7 +35,7 @@
         <span class="stat-icon">👥</span>
         <span class="stat-title">إجمالي المستخدمين</span>
       </div>
-      <div class="stat-value">{{ totalUsersCount }}</div>
+      <div class="stat-value">{{ vm.totalUsersCount }}</div>
       <div class="stat-hint">كافة الحسابات المسجلة في النظام</div>
     </div>
 
@@ -44,7 +44,7 @@
         <span class="stat-icon">🛡️</span>
         <span class="stat-title">المسؤولون</span>
       </div>
-      <div class="stat-value">{{ adminCount }}</div>
+      <div class="stat-value">{{ vm.adminCount }}</div>
       <div class="stat-hint">مسؤولو النظام بصلاحيات كاملة</div>
     </div>
 
@@ -53,7 +53,7 @@
         <span class="stat-icon">👨‍⚕️</span>
         <span class="stat-title">الأطباء</span>
       </div>
-      <div class="stat-value">{{ doctorCount }}</div>
+      <div class="stat-value">{{ vm.doctorCount }}</div>
       <div class="stat-hint">أطباء مسجلون في مختلف التخصصات</div>
     </div>
 
@@ -62,7 +62,7 @@
         <span class="stat-icon">🧑‍🦱</span>
         <span class="stat-title">المرضى</span>
       </div>
-      <div class="stat-value">{{ patientCount }}</div>
+      <div class="stat-value">{{ vm.patientCount }}</div>
       <div class="stat-hint">مرضى مسجلون في النظام</div>
     </div>
 
@@ -71,7 +71,7 @@
         <span class="stat-icon">✅</span>
         <span class="stat-title">الحسابات النشطة</span>
       </div>
-      <div class="stat-value">{{ activeCount }}</div>
+      <div class="stat-value">{{ vm.activeCount }}</div>
       <div class="stat-hint">حسابات مفعلة وقيد الاستخدام</div>
     </div>
 
@@ -80,7 +80,7 @@
         <span class="stat-icon">⏸️</span>
         <span class="stat-title">الحسابات غير النشطة</span>
       </div>
-      <div class="stat-value">{{ inactiveCount }}</div>
+      <div class="stat-value">{{ vm.inactiveCount }}</div>
       <div class="stat-hint">حسابات معطلة أو موقوفة</div>
     </div>
   </div>

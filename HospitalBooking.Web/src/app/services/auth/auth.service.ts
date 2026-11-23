@@ -13,6 +13,9 @@ import { IAuthService } from './auth.service.interface';
 export class AuthService implements IAuthService {
   private readonly http = inject(HttpClient);
 
+
+  // Observable = > تستخدم مع  async
+
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${API_BASE_URL}/api/auth/login`, credentials);
   }

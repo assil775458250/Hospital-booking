@@ -49,7 +49,6 @@ export class SpecializationsViewModel {
 
   constructor() {
     this.loadSpecializations();
-    this.loadDoctors();
   }
 
   loadSpecializations(): void {
@@ -63,24 +62,8 @@ export class SpecializationsViewModel {
         this.isLoading = false;
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحميل بيانات التخصصات.';
+        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات التخصصات.');
         this.isLoading = false;
-      },
-    });
-  }
-
-  loadDoctors(): void {
-    this.doctorsService.getDoctors().subscribe({
-      next: (data) => {
-        this.doctors = data;
-        if (this.selectedSpecialization) {
-          this.associatedDoctors = this.doctors.filter(
-            (doc) => doc.specializationId === this.selectedSpecialization?.id
-          );
-        }
-      },
-      error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحميل بيانات الأطباء.';
       },
     });
   }
@@ -161,7 +144,7 @@ export class SpecializationsViewModel {
             this.closeModal();
           },
           error: (err) => {
-            this.formError = err?.message || 'حدث خطأ أثناء تحديث بيانات التخصص.';
+            this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات التخصص.');
           },
         });
     } else {
@@ -178,7 +161,7 @@ export class SpecializationsViewModel {
           this.closeModal();
         },
         error: (err) => {
-          this.formError = err?.message || 'حدث خطأ أثناء إضافة التخصص.';
+          this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء إضافة التخصص.');
         },
       });
     }
@@ -206,7 +189,7 @@ export class SpecializationsViewModel {
         }
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء محاولة حذف التخصص.';
+        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء محاولة حذف التخصص.');
       },
     });
   }
@@ -220,7 +203,7 @@ export class SpecializationsViewModel {
 
     // تحديث قائمة الأطباء للحصول على أحدث البيانات
     this.doctorsService.getDoctors().subscribe({
-      next: (docs) => {
+      next: (docs) => { 
         this.doctors = docs;
         if (this.selectedSpecialization?.id === specialization.id) {
           this.associatedDoctors = this.doctors.filter(
@@ -229,7 +212,7 @@ export class SpecializationsViewModel {
         }
       },
       error: (err) => {
-        this.formError = err?.message || 'تعذر تحميل الأطباء المرتبطين بهذا التخصص.';
+        this.formError = this.extractErrorMessage(err, 'تعذر تحميل الأطباء المرتبطين بهذا التخصص.');
       },
     });
   }
@@ -277,5 +260,15 @@ export class SpecializationsViewModel {
   getDoctorInitials(name: string): string {
     const cleanName = name.replace(/^د\.\s*/, '').trim();
     return cleanName.charAt(0) || 'ط';
+  }
+
+  private extractErrorMessage(err: any, fallback: string): string {
+    if (typeof err?.error === 'string' && err.error.trim()) {
+      return err.error.trim();
+    }
+    if (err?.error?.message && typeof err.error.message === 'string') {
+      return err.error.message;
+    }
+    return err?.message || fallback;
   }
 }

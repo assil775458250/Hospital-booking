@@ -62,7 +62,7 @@ export class AdminProfileViewModel {
         this.isLoading = false;
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحميل بيانات الملف الشخصي.';
+        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات الملف الشخصي.');
         this.isLoading = false;
       },
     });
@@ -117,14 +117,13 @@ export class AdminProfileViewModel {
     this.isSavingProfile = true;
 
     this.adminProfileService.updateProfile(this.profile.id, request).subscribe({
-      next: (updatedProfile) => {
-        this.profile = updatedProfile;
-        this.initializeProfileForm();
+      next: () => {
+        this.loadProfile();
         this.isSavingProfile = false;
         this.triggerSuccess('تم تحديث البيانات الشخصية بنجاح.');
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحديث البيانات الشخصية.';
+        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث البيانات الشخصية.');
         this.isSavingProfile = false;
       },
     });
@@ -174,12 +173,10 @@ export class AdminProfileViewModel {
       next: () => {
         this.isChangingPassword = false;
         this.resetPasswordForm();
-        this.triggerSuccess(
-          'تم التحقق من صحة المدخلات بنجاح. سيتم تطبيق تغيير كلمة المرور فعليًا عند ربط الـ Backend.'
-        );
+        this.triggerSuccess('تم تغيير كلمة المرور بنجاح.');
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تغيير كلمة المرور.';
+        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تغيير كلمة المرور.');
         this.isChangingPassword = false;
       },
     });
@@ -216,4 +213,13 @@ export class AdminProfileViewModel {
       confirmNewPassword: '',
     };
   }
+  private extractErrorMessage(err: any, fallback: string): string {
+  if (typeof err?.error === 'string' && err.error.trim()) {
+    return err.error.trim();
+  }
+  if (err?.error?.message && typeof err.error.message === 'string') {
+    return err.error.message;
+  }
+  return err?.message || fallback;
+}
 }

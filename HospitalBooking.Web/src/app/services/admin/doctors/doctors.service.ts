@@ -10,7 +10,6 @@ import {
   DoctorStatus,
   UpdateDoctorRequest,
 } from '../../../models/admin/doctors/doctor.model';
-import { SpecializationsService } from '../specializations/specializations.service';
 import { IDoctorsService } from './doctors.service.interface';
 
 @Injectable({
@@ -18,186 +17,37 @@ import { IDoctorsService } from './doctors.service.interface';
 })
 export class DoctorsService implements IDoctorsService {
   private readonly http = inject(HttpClient);
-  private readonly specializationsService = inject(SpecializationsService);
 
-  private readonly doctors: Doctor[] = [
-    {
-      id: 1,
-      userId: 101,
-      fullName: 'د. أحمد محمد العلي',
-      email: 'ahmad.ali@yusr.med',
-      phoneNumber: '0501234567',
-      specializationId: 1,
-      specializationName: 'القلب',
-      accountStatus: 'Active',
-      profileImageUrl: null,
-      appointmentsCount: 24,
-    },
-    {
-      id: 2,
-      userId: 102,
-      fullName: 'د. سارة عبد الله العمري',
-      email: 'sara.omari@yusr.med',
-      phoneNumber: '0559876543',
-      specializationId: 2,
-      specializationName: 'الأطفال',
-      accountStatus: 'Active',
-      profileImageUrl: null,
-      appointmentsCount: 18,
-    },
-    {
-      id: 3,
-      userId: 103,
-      fullName: 'د. خالد إبراهيم المنصور',
-      email: 'khaled.mansour@yusr.med',
-      phoneNumber: '0541122334',
-      specializationId: 4,
-      specializationName: 'العظام',
-      accountStatus: 'Active',
-      profileImageUrl: null,
-      appointmentsCount: 31,
-    },
-    {
-      id: 4,
-      userId: 104,
-      fullName: 'د. فاطمة حسن الزهراني',
-      email: 'fatima.zahrani@yusr.med',
-      phoneNumber: '0563344556',
-      specializationId: 3,
-      specializationName: 'الجلدية',
-      accountStatus: 'Inactive',
-      profileImageUrl: null,
-      appointmentsCount: 0,
-    },
-    {
-      id: 5,
-      userId: 105,
-      fullName: 'د. محمد سعيد القحطاني',
-      email: 'mohammed.qahtani@yusr.med',
-      phoneNumber: '0535566778',
-      specializationId: 5,
-      specializationName: 'الأسنان',
-      accountStatus: 'Active',
-      profileImageUrl: null,
-      appointmentsCount: 15,
-    },
-    {
-      id: 6,
-      userId: 106,
-      fullName: 'د. ريم ناصر العتيبي',
-      email: 'reem.otaibi@yusr.med',
-      phoneNumber: '0597788990',
-      specializationId: 3,
-      specializationName: 'الجلدية',
-      accountStatus: 'Active',
-      profileImageUrl: null,
-      appointmentsCount: 9,
-    },
-    {
-      id: 7,
-      userId: 107,
-      fullName: 'د. يوسف طارق الحربي',
-      email: 'yousef.harbi@yusr.med',
-      phoneNumber: '0502233445',
-      specializationId: 2,
-      specializationName: 'الأطفال',
-      accountStatus: 'Inactive',
-      profileImageUrl: null,
-      appointmentsCount: 3,
-    },
-    {
-      id: 8,
-      userId: 108,
-      fullName: 'د. ليلى عبد العزيز الشمري',
-      email: 'layla.shammari@yusr.med',
-      phoneNumber: '0554433221',
-      specializationId: 4,
-      specializationName: 'العظام',
-      accountStatus: 'Active',
-      profileImageUrl: null,
-      appointmentsCount: 12,
-    },
-  ];
 
   getDoctors(): Observable<Doctor[]> {
-    const doctors = this.doctors.map((doctor) => {
-      const specName =
-        this.specializationsService.getSpecializationNameById(doctor.specializationId) ||
-        doctor.specializationName;
-
-      return {
-        ...doctor,
-        specializationName: specName,
-      };
-    });
-
-    return of(doctors);
+    return this.http.get<Doctor[]>(`${API_BASE_URL}/api/admin/doctors`);
   }
 
   createDoctor(data: CreateDoctorRequest): Observable<void> {
-    const specName = this.specializationsService.getSpecializationNameById(data.specializationId);
-    if (!specName) {
-      return throwError(() => new Error('التخصص المحدد غير موجود.'));
-    }
+    const payload = {
+    fullName: data.fullName,
+    email: data.email,
+      phoneNumber: data.phoneNumber,
+      specializationId: data.specializationId,
+      password: data.password,
+      status: data.accountStatus,
+    };
+    return this.http.post<void>(`${API_BASE_URL}/api/doctors`, payload);
+  }
 
-    const maxId = this.doctors.reduce((max, d) => Math.max(max, d.id), 0);
-    const newId = maxId + 1;
-
-    const newDoctor: Doctor = {
-      id: newId,
-      userId: 100 + newId,
+  updateDoctor(id: number, data: UpdateDoctorRequest): Observable<void> {
+    const payload = {
       fullName: data.fullName,
       email: data.email,
       phoneNumber: data.phoneNumber,
       specializationId: data.specializationId,
-      specializationName: specName,
-      accountStatus: data.accountStatus,
-      profileImageUrl: null,
-      appointmentsCount: 0,
+      status: data.accountStatus,
     };
-
-    this.doctors.unshift(newDoctor);
-    this.specializationsService.adjustDoctorsCount(data.specializationId, 1);
-    return of(void 0);
-  }
-
-  updateDoctor(id: number, data: UpdateDoctorRequest): Observable<void> {
-    const doctor = this.doctors.find((d) => d.id === id);
-    if (!doctor) {
-      return throwError(() => new Error('لم يتم العثور على الطبيب المطلوب.'));
-    }
-
-    const newSpecName = this.specializationsService.getSpecializationNameById(data.specializationId);
-    if (!newSpecName) {
-      return throwError(() => new Error('التخصص المحدد غير موجود.'));
-    }
-
-    const oldSpecId = doctor.specializationId;
-    const isSpecChanged = oldSpecId !== data.specializationId;
-
-    doctor.fullName = data.fullName;
-    doctor.email = data.email;
-    doctor.phoneNumber = data.phoneNumber;
-    doctor.specializationId = data.specializationId;
-    doctor.specializationName = newSpecName;
-    doctor.accountStatus = data.accountStatus;
-
-    if (isSpecChanged) {
-      this.specializationsService.adjustDoctorsCount(oldSpecId, -1);
-      this.specializationsService.adjustDoctorsCount(data.specializationId, 1);
-    }
-
-    return of(void 0);
+    return this.http.put<void>(`${API_BASE_URL}/api/doctors/${id}`, payload); // 
   }
 
   updateDoctorStatus(id: number, status: DoctorStatus): Observable<void> {
-    const doctor = this.doctors.find((d) => d.id === id);
-    if (!doctor) {
-      return throwError(() => new Error('لم يتم العثور على الطبيب المطلوب.'));
-    }
-
-    doctor.accountStatus = status;
-    return of(void 0);
+    return this.http.put<void>(`${API_BASE_URL}/api/doctors/${id}`, { status }); // 
   }
 
   getDoctorById(id: number): Observable<DoctorDetails> {

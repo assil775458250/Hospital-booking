@@ -65,9 +65,18 @@ export class DashboardViewModel {
         this.isLoading = false;
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'تعذر تحميل بيانات لوحة التحكم.';
+        this.errorMessage = this.extractErrorMessage(err, 'تعذر تحميل بيانات لوحة التحكم.');
         this.isLoading = false;
       },
     });
   }
+  private extractErrorMessage(err: any, fallback: string): string {
+  if (typeof err?.error === 'string' && err.error.trim()) {
+    return err.error.trim();
+  }
+  if (err?.error?.message && typeof err.error.message === 'string') {
+    return err.error.message;
+  }
+  return err?.message || fallback;
+}
 }

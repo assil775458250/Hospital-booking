@@ -45,7 +45,7 @@ export class AppointmentsViewModel {
         this.isLoading = false;
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'حدث خطأ أثناء تحميل المواعيد.';
+        this.errorMessage = this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل المواعيد.');
         this.isLoading = false;
       },
     });
@@ -127,7 +127,7 @@ export class AppointmentsViewModel {
         this.isUpdatingStatus = false;
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'حدث خطأ أثناء تحديث حالة الموعد.';
+        this.errorMessage = this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث حالة الموعد.');
         this.isUpdatingStatus = false;
       },
     });
@@ -157,4 +157,14 @@ export class AppointmentsViewModel {
   get filteredCount(): number {
     return this.filteredAppointments.length;
   }
+
+  private extractErrorMessage(err: any, fallback: string): string {
+  if (typeof err?.error === 'string' && err.error.trim()) {
+    return err.error.trim();
+  }
+  if (err?.error?.message && typeof err.error.message === 'string') {
+    return err.error.message;
+  }
+  return err?.message || fallback;
+}
 }

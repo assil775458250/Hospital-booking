@@ -1,9 +1,10 @@
-import { Appointment } from '../../models/doctor/Doctor.Model';
+import { Observable } from 'rxjs';
+import { Appointment, AppointmentStatus } from '../../models/doctor/Doctor.Model';
 
 export interface AppointmentServiceInterface {
+  
+  getAppointments(doctorId: number): Observable<Appointment[]>;
 
-  getAppointments(): Appointment[];
-
-  updateStatus(id: number, status: string): void;
-
+  
+  updateStatus(appointmentId: number, status: AppointmentStatus | string): Observable<void>;
 }

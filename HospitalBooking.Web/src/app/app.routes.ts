@@ -61,13 +61,13 @@ export const routes: Routes = [
     ],
   },
   {
-  path: 'doctor/dashboard',
-  component: Dashboard,
-  canActivate: [authGuard],
-  data: {
-    roles: ['Doctor'],
+    path: 'doctor/dashboard',
+    component: Dashboard,
+    canActivate: [authGuard],
+    data: {
+      roles: ['Doctor'],
+    },
   },
-},
   {
     path: 'doctor/under-development',
     component: DoctorUnderDevelopmentComponent,

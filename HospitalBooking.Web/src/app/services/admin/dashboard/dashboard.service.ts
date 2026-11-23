@@ -1,21 +1,17 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { DashboardResponse } from '../../../models/admin/dashboard/dashboard.model';
 import { IDashboardService } from './dashboard.service.interface';
+import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../../../core/config/api.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DashboardService implements IDashboardService {
-  private readonly mockData: DashboardResponse = {
-    totalDoctors: 8,
-    totalPatients: 8,
-    totalAppointments: 24,
-    totalSpecializations: 5,
-    recentAppointments: [],
-  };
+  private readonly http = inject(HttpClient);
 
   getDashboardData(): Observable<DashboardResponse> {
-    return of(this.mockData);
+    return this.http.get<DashboardResponse>(`${API_BASE_URL}/api/admin/dashboard`);
   }
 }

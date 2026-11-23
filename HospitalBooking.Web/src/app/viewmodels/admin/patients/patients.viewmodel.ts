@@ -31,12 +31,12 @@ export class PatientsViewModel {
 
   loadPatients(): void {
     this.patientsService.getPatients().subscribe({
-      next: (data) => {
-        this.patients = data;
+      next: (patients: Patient[]) => {
+        this.patients = patients.map((patient) => this.mapPatient(patient));
         this.applyFilters();
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحميل بيانات المرضى.';
+        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات المرضى.');
       },
     });
   }
@@ -123,7 +123,7 @@ export class PatientsViewModel {
         this.closeEditModal();
       },
       error: (err) => {
-        this.formError = err?.message || 'حدث خطأ أثناء تحديث بيانات المريض.';
+        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات المريض.');
       },
     });
   }
@@ -143,5 +143,27 @@ export class PatientsViewModel {
   getInitial(name: string): string {
     const clean = name.trim();
     return clean.charAt(0) || 'م';
+  }
+
+  private extractErrorMessage(err: any, fallback: string): string {
+    if (typeof err?.error === 'string' && err.error.trim()) {
+      return err.error.trim();
+    }
+    if (err?.error?.message && typeof err.error.message === 'string') {
+      return err.error.message;
+    }
+    return err?.message || fallback;
+  }
+  formatDate(dateValue: string | null | undefined): string {
+    if (!dateValue) {
+      return '-';
+    }
+    return dateValue.split('T')[0];
+  }
+  private mapPatient(patient: Patient): Patient {
+    return {
+      ...patient,
+      createdAt: this.formatDate(patient.createdAt),
+    };
   }
 }

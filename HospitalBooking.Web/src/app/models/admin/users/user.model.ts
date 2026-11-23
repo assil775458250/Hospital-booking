@@ -14,8 +14,8 @@ export interface User {
 
 export interface UserFilters {
   search?: string;
-  role?: UserRole | '';
-  status?: UserStatus | '';
+  role?: UserRole;
+  status?: UserStatus;
 }
 
 export interface UpdateUserRequest {

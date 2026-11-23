@@ -1,14 +1,10 @@
-export interface DoctorProfile {
-  name: string;
-  email: string;
-  phone: string;
-  specialization: string;
-}
+import { Observable } from 'rxjs';
+import { DoctorProfile, UpdateDoctorRequest } from '../../models/doctor/Doctor.Model';
 
 export interface DoctorServiceInterface {
+  
+  getDoctor(id: number): Observable<DoctorProfile>;
 
-  getDoctor(): DoctorProfile;
-
-  updateDoctor(doctor: DoctorProfile): void;
-
+  
+  updateDoctor(id: number, data: UpdateDoctorRequest): Observable<DoctorProfile>;
 }
