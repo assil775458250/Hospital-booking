@@ -13,6 +13,8 @@ export interface StatCard {
 export class DashboardViewModel {
   private readonly dashboardService = inject(DashboardService);
 
+  onDataLoaded?: () => void;
+
   isLoading = true;
   errorMessage = '';
 
@@ -30,11 +32,13 @@ export class DashboardViewModel {
   }
 
   loadDashboardData(): void {
+    console.log('[DashboardViewModel] loadDashboardData START');
     this.isLoading = true;
     this.errorMessage = '';
 
     this.dashboardService.getDashboardData().subscribe({
       next: (data) => {
+        console.log('[DashboardViewModel] next called with data:', data);
         this.stats = [
           {
             title: 'إجمالي الأطباء',
@@ -63,10 +67,14 @@ export class DashboardViewModel {
         ];
         this.recentAppointments = data.recentAppointments;
         this.isLoading = false;
+        this.onDataLoaded?.();
+        console.log('[DashboardViewModel] stats updated, isLoading is now false');
       },
       error: (err) => {
+        console.error('[DashboardViewModel] error called with:', err);
         this.errorMessage = this.extractErrorMessage(err, 'تعذر تحميل بيانات لوحة التحكم.');
         this.isLoading = false;
+        this.onDataLoaded?.();
       },
     });
   }

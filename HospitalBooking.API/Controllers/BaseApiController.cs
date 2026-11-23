@@ -1,6 +1,7 @@
-﻿using System.Security.Claims;
-using HospitalBooking.API.Services.Common;
+﻿using HospitalBooking.API.Services.Common;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using static System.Net.WebRequestMethods;
 
 namespace HospitalBooking.API.Controllers
 {
@@ -24,7 +25,9 @@ namespace HospitalBooking.API.Controllers
         {
             if (!response.Success)
             {
+                //HTTP Status Code Response
                 return StatusCode(response.StatusCode, new { message = response.Message });
+
                 //return NotFound(response.Message);
             }
 

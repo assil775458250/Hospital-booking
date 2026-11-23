@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { UsersViewModel } from '../../../viewmodels/admin/users/users.viewmodel';
 
@@ -10,6 +10,13 @@ import { UsersViewModel } from '../../../viewmodels/admin/users/users.viewmodel'
   templateUrl: './users.component.html',
   styleUrl: './users.component.css',
 })
-export class UsersComponent {
+export class UsersComponent implements OnInit {
+  private readonly cdr = inject(ChangeDetectorRef);
   readonly vm = inject(UsersViewModel);
+
+  ngOnInit(): void {
+    this.vm.onDataLoaded = () => {
+      this.cdr.detectChanges();
+    };
+  }
 }
