@@ -3,8 +3,8 @@ WORKDIR /src
 
 COPY . .
 
-RUN dotnet restore "YAGOT_2.0.csproj"
-RUN dotnet publish "YAGOT_2.0.csproj" -c Release -o /app/publish
+RUN dotnet restore "HospitalBooking.API.csproj"
+RUN dotnet publish "HospitalBooking.API.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
@@ -15,4 +15,5 @@ ENV ASPNETCORE_URLS=http://+:10000
 
 EXPOSE 10000
 
-ENTRYPOINT ["dotnet", "YAGOT_2.0.dll"]
+
+ENTRYPOINT ["dotnet", "HospitalBooking.API.dll"]
