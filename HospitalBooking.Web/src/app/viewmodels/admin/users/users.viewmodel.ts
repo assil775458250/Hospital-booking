@@ -21,6 +21,8 @@ export class UsersViewModel {
   private readonly usersService = inject(UsersService);
   private readonly authSessionService = inject(AuthSessionService);
 
+  onDataLoaded?: () => void;
+
   // حالات التحميل والرسائل
   isLoading = false;
   formError = '';
@@ -63,10 +65,12 @@ export class UsersViewModel {
         this.applyFilters();
         this.updateStats();
         this.isLoading = false;
+        this.onDataLoaded?.();
       },
       error: (err) => {
         this.formError = err.error?.message ||err.error?.title || 'حدث خطأ أثناء تحميل بيانات المستخدمين.';
         this.isLoading = false;
+        this.onDataLoaded?.();
       },
     });
   }
