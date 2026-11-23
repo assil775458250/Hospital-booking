@@ -81,8 +81,11 @@ export class LoginViewModel {
   break;
 
       case 'Patient':
-        // لا تحفظ الجلسة
-        this.errorMessage = 'بوابة الويب مخصصة للمسؤول والطبيب فقط. يرجى استخدام تطبيق المريض على الهاتف.';
+        // لا نحفظ جلسة المسؤول/الطبيب في الويب بل نوجه المريض لصفحة تحميل التطبيق
+        this.sessionService.clearSession();
+        this.router.navigate(['/patient-app'], {
+          queryParams: { name: response.user?.fullName || '' },
+        });
         break;
 
       default:

@@ -1,0 +1,312 @@
+.patient-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  background: linear-gradient(135deg, var(--background-color) 0%, #e0f2f7 50%, #d5eef7 100%);
+}
+
+.patient-card {
+  width: 100%;
+  max-width: 540px;
+  background-color: var(--white-color);
+  border-radius: 20px;
+  padding: 2.75rem 2.25rem;
+  text-align: center;
+  box-shadow: 0 20px 35px -10px rgba(16, 54, 107, 0.12),
+              0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(11, 170, 180, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.patient-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+}
+
+.hospital-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.hospital-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent-color);
+  box-shadow: 0 4px 10px rgba(11, 170, 180, 0.2);
+}
+
+.hospital-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.patient-badge {
+  display: inline-block;
+  background-color: rgba(11, 170, 180, 0.12);
+  color: #087980;
+  padding: 0.35rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(11, 170, 180, 0.25);
+}
+
+.welcome-text {
+  font-size: 1.05rem;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.welcome-text strong {
+  color: var(--secondary-color);
+}
+
+.main-title {
+  color: var(--primary-color);
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin-bottom: 0.85rem;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+/* QR Code Section in Center */
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 1.5rem 0 2rem;
+}
+
+.qr-frame {
+  position: relative;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(16, 54, 107, 0.12);
+  border: 1px solid #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-code-svg {
+  width: 190px;
+  height: 190px;
+  display: block;
+}
+
+/* Corner scan brackets */
+.corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: var(--secondary-color);
+  border-style: solid;
+}
+
+.corner-tl {
+  top: -2px;
+  right: -2px;
+  border-width: 3px 3px 0 0;
+  border-top-right-radius: 8px;
+}
+
+.corner-tr {
+  top: -2px;
+  left: -2px;
+  border-width: 3px 0 0 3px;
+  border-top-left-radius: 8px;
+}
+
+.corner-bl {
+  bottom: -2px;
+  right: -2px;
+  border-width: 0 3px 3px 0;
+  border-bottom-right-radius: 8px;
+}
+
+.corner-br {
+  bottom: -2px;
+  left: -2px;
+  border-width: 0 0 3px 3px;
+  border-bottom-left-radius: 8px;
+}
+
+.qr-instruction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.scan-icon {
+  font-size: 1.15rem;
+}
+
+/* Store Badges */
+.store-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.store-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1.25rem;
+  background-color: #0f172a;
+  color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s, background-color 0.2s;
+  cursor: pointer;
+  user-select: none;
+}
+
+.store-badge:hover {
+  transform: translateY(-2px);
+  background-color: var(--primary-color);
+}
+
+.store-icon {
+  font-size: 1.5rem;
+}
+
+.store-info {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  line-height: 1.2;
+}
+
+.store-info small {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.store-info strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* Features List */
+.features-list {
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  border: 1px solid #e2e8f0;
+  text-align: right;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.check-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #e0f2fe;
+  color: var(--secondary-color);
+  font-weight: 700;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Back Button */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  background-color: var(--secondary-color);
+  color: var(--white-color);
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.back-btn:hover {
+  background-color: #098e96;
+}
+
+.back-btn:active {
+  transform: translateY(1px);
+}
+
+.arrow-icon {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 480px) {
+  .patient-card {
+    padding: 2rem 1.25rem;
+    border-radius: 16px;
+  }
+
+  .main-title {
+    font-size: 1.35rem;
+  }
+
+  .qr-code-svg {
+    width: 160px;
+    height: 160px;
+  }
+
+  .store-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .store-badge {
+    width: 100%;
+    justify-content: center;
+  }
+}

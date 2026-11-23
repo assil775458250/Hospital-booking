@@ -16,20 +16,20 @@ namespace HospitalBooking.API.Controllers
         }
 
         // 24. PUT /api/slots/{id}
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateSlot(int id, [FromBody] UpdateSlotDto dto)
         {
-            var result = await _slotService.UpdateSlotAsync(id, dto);
+            var result = await _slotService.UpdateSlotAsync(id, dto, CurrentUserId, CurrentUserRole);
             return HandleResult(result);
         }
 
         // 25. DELETE /api/slots/{id}
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSlot(int id)
         {
-            var result = await _slotService.DeleteSlotAsync(id);
+            var result = await _slotService.DeleteSlotAsync(id, CurrentUserId, CurrentUserRole);
             return HandleResult(result);
         }
     }

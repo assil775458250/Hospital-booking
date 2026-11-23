@@ -231,7 +231,14 @@ namespace HospitalBooking.API.Services.Appointments
                 return ServiceResponse<AppointmentDto>.Fail("غير مصرح لك بتغيير حالة هذا الحجز", 403);
             }
 
-            if (!Enum.TryParse<BookingStatus>(dto.Status.Trim(), true, out var newStatus))
+            var statusInput = dto.Status.Trim();
+            if (statusInput.Equals("Completed", StringComparison.OrdinalIgnoreCase) ||
+                statusInput.Equals("Confirmed", StringComparison.OrdinalIgnoreCase))
+            {
+                statusInput = nameof(BookingStatus.Approved);
+            }
+
+            if (!Enum.TryParse<BookingStatus>(statusInput, true, out var newStatus))
             {
                 return ServiceResponse<AppointmentDto>.Fail("حالة الحجز غير صالحة. الحالات المتاحة: Pending, Approved, Rejected, Cancelled", 400);
             }
