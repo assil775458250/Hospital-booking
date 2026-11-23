@@ -13,7 +13,7 @@ export class AdminLayoutComponent {
   private readonly sessionService = inject(AuthSessionService);
   private readonly router = inject(Router);
 
-  readonly currentUser = this.sessionService.getCurrentUser();
+  readonly currentUser = this.sessionService.currentUser;
   isSidebarOpen = false;
 
   toggleSidebar(): void {

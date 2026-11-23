@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { AuthUser, UserRole } from '../../models/auth/auth-user.model';
 import { LoginResponse } from '../../models/auth/login-response.model';
 
@@ -13,6 +13,8 @@ interface StoredSessionData {
 })
 export class AuthSessionService {
   private readonly storageKey = 'yusr_auth_session';
+  private readonly _currentUser = signal<AuthUser | null>(this.getSessionData()?.user ?? null);
+  readonly currentUser = this._currentUser.asReadonly();
 
   saveSession(response: LoginResponse): void {
     if (!response || !response.token || !response.user) {
@@ -39,6 +41,27 @@ export class AuthSessionService {
 
     try {
       sessionStorage.setItem(this.storageKey, JSON.stringify(sessionData));
+      this._currentUser.set(sessionData.user);
+    } catch {
+      // التعامل مع أخطاء التخزين دون تعطيل التطبيق
+    }
+  }
+
+  updateCurrentUser(userUpdates: Partial<AuthUser>): void {
+    const session = this.getSessionData();
+    if (!session || !session.user) {
+      return;
+    }
+
+    const updatedUser: AuthUser = {
+      ...session.user,
+      ...userUpdates,
+    };
+    session.user = updatedUser;
+
+    try {
+      sessionStorage.setItem(this.storageKey, JSON.stringify(session));
+      this._currentUser.set(updatedUser);
     } catch {
       // التعامل مع أخطاء التخزين دون تعطيل التطبيق
     }
@@ -50,8 +73,7 @@ export class AuthSessionService {
   }
 
   getCurrentUser(): AuthUser | null {
-    const session = this.getSessionData();
-    return session?.user ?? null;
+    return this._currentUser();
   }
 
   getCurrentRole(): UserRole | null {
@@ -68,6 +90,7 @@ export class AuthSessionService {
   clearSession(): void {
     try {
       sessionStorage.removeItem(this.storageKey);
+      this._currentUser.set(null);
     } catch {
       // التعامل مع أخطاء التخزين دون تعطيل التطبيق
     }
