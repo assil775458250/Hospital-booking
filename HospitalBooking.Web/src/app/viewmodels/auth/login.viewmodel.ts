@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { extractApiErrorMessage } from '../../core/utils/api-error.util';
 import { AuthService } from '../../services/auth/auth.service';
 import { AuthSessionService } from '../../core/auth/auth-session.service';
 import { LoginRequest } from '../../models/auth/login-request.model';
@@ -92,16 +93,19 @@ export class LoginViewModel {
   private handleLoginError(err: HttpErrorResponse): void {
     if (err.status === 400 || err.status === 401) {
       this.errorMessage.set(
-        err.error?.message ||
-        err.error?.title ||
-        'بيانات تسجيل الدخول غير صحيحة، يرجى التأكد من صحة البريد/الهاتف وكلمة المرور.'
+        extractApiErrorMessage(
+          err,
+          'بيانات تسجيل الدخول غير صحيحة، يرجى التأكد من صحة البريد/الهاتف وكلمة المرور.'
+        )
       );
     } else if (err.status === 0) {
       this.errorMessage.set('تعذر الاتصال بالخادم، يرجى التحقق من اتصال الشبكة وتشغيل الـ Backend.');
     } else {
       this.errorMessage.set(
-        err.error?.message ||
-        'حدث خطأ غير متوقع أثناء تسجيل الدخول. يرجى المحاولة لاحقاً.'
+        extractApiErrorMessage(
+          err,
+          'حدث خطأ غير متوقع أثناء تسجيل الدخول. يرجى المحاولة لاحقاً.'
+        )
       );
     }
   }

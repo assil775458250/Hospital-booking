@@ -1,4 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import {
   Appointment,
   AppointmentStatus,
@@ -192,12 +193,6 @@ export class AppointmentsViewModel {
   }
 
   private extractErrorMessage(err: any, fallback: string): string {
-    if (typeof err?.error === 'string' && err.error.trim()) {
-      return err.error.trim();
-    }
-    if (err?.error?.message && typeof err.error.message === 'string') {
-      return err.error.message;
-    }
-    return err?.message || fallback;
+    return extractApiErrorMessage(err, fallback);
   }
 }

@@ -1,4 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { Patient, UpdatePatientRequest } from '../../../models/admin/patients/patient.model';
 import { PatientsService } from '../../../services/admin/patients/patients.service';
 
@@ -150,13 +151,7 @@ export class PatientsViewModel {
   }
 
   private extractErrorMessage(err: any, fallback: string): string {
-    if (typeof err?.error === 'string' && err.error.trim()) {
-      return err.error.trim();
-    }
-    if (err?.error?.message && typeof err.error.message === 'string') {
-      return err.error.message;
-    }
-    return err?.message || fallback;
+    return extractApiErrorMessage(err, fallback);
   }
 
   formatDate(dateValue: string | null | undefined): string {

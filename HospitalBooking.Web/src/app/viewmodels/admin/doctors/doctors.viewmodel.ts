@@ -1,4 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
+import { extractApiErrorMessage as getApiErrorMessage } from '../../../core/utils/api-error.util';
 import {
   CreateDoctorRequest,
   Doctor,
@@ -424,30 +425,7 @@ export class DoctorsViewModel {
   }
 
   private extractApiErrorMessage(err: unknown, fallback: string): string {
-    const httpErr = err as {
-      status?: number;
-      error?: { message?: string; title?: string } | string;
-      message?: string;
-    };
-
-    if (typeof httpErr?.error === 'string' && httpErr.error.trim()) {
-      return httpErr.error.trim();
-    }
-    if (httpErr?.error && typeof httpErr.error === 'object') {
-      if (httpErr.error.message) {
-        return httpErr.error.message;
-      }
-      if (httpErr.error.title) {
-        return httpErr.error.title;
-      }
-    }
-    if (httpErr?.status === 0) {
-      return 'تعذر الاتصال بالخادم. يرجى التأكد من تشغيل الخادم والمحاولة مرة أخرى.';
-    }
-    if (httpErr?.status === 404) {
-      return 'لم يتم العثور على بيانات الطبيب المطلوب.';
-    }
-    return httpErr?.message || fallback;
+    return getApiErrorMessage(err, fallback);
   }
 
   dismissSuccessMessage(): void {
