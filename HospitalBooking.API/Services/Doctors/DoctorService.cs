@@ -186,7 +186,7 @@ namespace HospitalBooking.API.Services.Doctors
             });
         }
 
-        public async Task<ServiceResponse<DoctorDto>> UpdateDoctorAsync(int id, UpdateDoctorDto dto)
+        public async Task<ServiceResponse<DoctorDto>> UpdateDoctorAsync(int id, UpdateDoctorDto dto, int? currentUserId = null, string? currentUserRole = null)
         {
             var doctor = await _context.Doctors
                 .Include(d => d.User)
@@ -196,6 +196,11 @@ namespace HospitalBooking.API.Services.Doctors
             if (doctor == null)
             {
                 return ServiceResponse<DoctorDto>.Fail("الطبيب غير موجود", 404);
+            }
+
+            if (string.Equals(currentUserRole, "Doctor", StringComparison.OrdinalIgnoreCase) && doctor.UserId != currentUserId)
+            {
+                return ServiceResponse<DoctorDto>.Fail("غير مصرح لك بتعديل بيانات طبيب آخر", 403);
             }
 
             if (dto.SpecializationId.HasValue && dto.SpecializationId.Value > 0)
@@ -289,13 +294,16 @@ namespace HospitalBooking.API.Services.Doctors
 
             if (date.HasValue)
             {
-                var targetDate = DateTime.SpecifyKind(date.Value.Date, DateTimeKind.Utc);
+                var targetDate = new DateTimeOffset(date.Value.Date, TimeSpan.Zero);
                 var nextDate = targetDate.AddDays(1);
                 query = query.Where(s => s.StartDateTime >= targetDate && s.StartDateTime < nextDate);
             }
 
-            var slots = await query
+            var slotsList = await query
                 .OrderBy(s => s.StartDateTime)
+                .ToListAsync();
+
+            var slots = slotsList
                 .Select(s => new DoctorSlotDto
                 {
                     Id = s.SlotId,
@@ -305,12 +313,12 @@ namespace HospitalBooking.API.Services.Doctors
                     EndTime = s.EndDateTime.ToString("HH:mm"),
                     Status = s.IsCancelled ? "Unavailable" : (s.Bookings.Any(b => b.Status != BookingStatus.Cancelled) ? "Booked" : "Available")
                 })
-                .ToListAsync();
+                .ToList();
 
             return ServiceResponse<List<DoctorSlotDto>>.Ok(slots);
         }
 
-        public async Task<ServiceResponse<object>> CreateDoctorSlotAsync(int doctorId, CreateDoctorSlotDto dto)
+        public async Task<ServiceResponse<object>> CreateDoctorSlotAsync(int doctorId, CreateDoctorSlotDto dto, int? currentUserId = null, string? currentUserRole = null)
         {
             var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == doctorId || d.UserId == doctorId);
             if (doctor == null)
@@ -318,13 +326,34 @@ namespace HospitalBooking.API.Services.Doctors
                 return ServiceResponse<object>.Fail("الطبيب غير موجود", 404);
             }
 
+            if (currentUserRole == "Doctor" && doctor.UserId != currentUserId && doctor.DoctorId != currentUserId)
+            {
+                return ServiceResponse<object>.Fail("غير مصرح لك بإضافة أوقات لطبيب آخر", 403);
+            }
+
             if (!TimeSpan.TryParse(dto.StartTime, out var startTime) || !TimeSpan.TryParse(dto.EndTime, out var endTime))
             {
                 return ServiceResponse<object>.Fail("صيغة الوقت غير صحيحة، يرجى استخدام صيغة HH:mm", 400);
             }
 
+            if (endTime <= startTime)
+            {
+                return ServiceResponse<object>.Fail("وقت نهاية الفترة يجب أن يكون بعد وقت البداية", 400);
+            }
+
             var startDateTime = new DateTimeOffset(dto.Date.Date.Add(startTime), TimeSpan.Zero);
             var endDateTime = new DateTimeOffset(dto.Date.Date.Add(endTime), TimeSpan.Zero);
+
+            var hasOverlap = await _context.AppointmentSlots.AnyAsync(s =>
+                s.DoctorId == doctor.DoctorId &&
+                !s.IsCancelled &&
+                s.StartDateTime < endDateTime &&
+                s.EndDateTime > startDateTime);
+
+            if (hasOverlap)
+            {
+                return ServiceResponse<object>.Fail("هذا الوقت يتداخل مع فترة عمل أخرى مسجلة", 400);
+            }
 
             var slot = new AppointmentSlot
             {

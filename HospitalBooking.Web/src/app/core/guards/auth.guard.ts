@@ -23,11 +23,14 @@ export const authGuard: CanActivateFn = (route, state): boolean | UrlTree => {
       : allowedRoles === currentRole;
 
     if (!hasRole) {
-      if(currentRole === 'Admin') {
+      if (currentRole === 'Admin') {
         return router.createUrlTree(['/admin/dashboard']);
       }
-      if(currentRole === 'Doctor') {
+      if (currentRole === 'Doctor') {
         return router.createUrlTree(['/doctor/dashboard']);
+      }
+      if (currentRole === 'Patient') {
+        return router.createUrlTree(['/patient-app']);
       }
       return router.createUrlTree(['/login']);
     }

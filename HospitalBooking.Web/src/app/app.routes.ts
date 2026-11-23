@@ -10,12 +10,22 @@ import { SpecializationsComponent } from './views/admin/specializations/speciali
 import { UsersComponent } from './views/admin/users/users.component';
 import { AdminProfileComponent } from './views/admin/profile/admin-profile.component';
 import { DoctorUnderDevelopmentComponent } from './views/doctor/under-development/under-development.component';
+import { PatientAppComponent } from './views/patient/patient-app/patient-app.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
+  },
+  {
+    path: 'patient-app',
+    component: PatientAppComponent,
+  },
+  {
+    path: 'download-app',
+    redirectTo: 'patient-app',
+    pathMatch: 'full',
   },
   {
     path: 'admin',

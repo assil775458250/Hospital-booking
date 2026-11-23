@@ -46,11 +46,11 @@ namespace HospitalBooking.API.Controllers
         }
 
         // 15. PUT /api/doctors/{id}
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDoctor(int id, [FromBody] UpdateDoctorDto dto)
         {
-            var result = await _doctorService.UpdateDoctorAsync(id, dto);
+            var result = await _doctorService.UpdateDoctorAsync(id, dto, CurrentUserId, CurrentUserRole);
             return HandleResult(result);
         }
 
@@ -72,7 +72,7 @@ namespace HospitalBooking.API.Controllers
         }
 
         // 23. POST /api/doctors/{doctorId}/slots
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Doctor,Admin")]
         [HttpPost("{doctorId}/slots")]
         public async Task<IActionResult> CreateDoctorSlot(int doctorId, [FromBody] CreateDoctorSlotDto dto)
         {
@@ -81,7 +81,7 @@ namespace HospitalBooking.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _doctorService.CreateDoctorSlotAsync(doctorId, dto);
+            var result = await _doctorService.CreateDoctorSlotAsync(doctorId, dto, CurrentUserId, CurrentUserRole);
             return HandleResult(result);
         }
 

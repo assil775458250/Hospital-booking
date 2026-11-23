@@ -518,9 +518,18 @@
 
                     <td>
 
+                      <button
+                        type="button"
+                        class="edit-btn"
+                        (click)="vm.openEditSlotModal(slot)"
+                        title="تعديل الفترة المتاحة">
+                        تعديل
+                      </button>
+
                       @if (slot.isActive) {
 
                         <button
+                          type="button"
                           class="stop-btn"
                           (click)="vm.stopSlot(slot.id)">
                           توقف
@@ -529,6 +538,7 @@
                       } @else {
 
                         <button
+                          type="button"
                           class="activate-btn"
                           (click)="vm.activateSlot(slot.id)">
                           تفعيل
@@ -555,6 +565,83 @@
             </table>
 
           </div>
+
+          <!-- نافذة تعديل الفترة المتاحة -->
+          @if (vm.isEditSlotModalOpen) {
+            <div class="modal-backdrop" (click)="vm.closeEditSlotModal()"></div>
+            <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editSlotTitle">
+              <div class="modal-header">
+                <h3 id="editSlotTitle" class="modal-title">✏️ تعديل الفترة المتاحة</h3>
+                <button type="button" class="modal-close-btn" (click)="vm.closeEditSlotModal()" aria-label="إغلاق">✕</button>
+              </div>
+
+              <form (ngSubmit)="vm.saveSlotEdit()" class="modal-form">
+                <div class="modal-body">
+                  <div class="form-group-row">
+                    <div class="form-field">
+                      <label for="editDate">التاريخ *</label>
+                      <input
+                        type="date"
+                        id="editDate"
+                        name="editDate"
+                        [(ngModel)]="vm.editSlotDate"
+                        required />
+                    </div>
+                  </div>
+
+                  <div class="form-group-row two-cols">
+                    <div class="form-field">
+                      <label for="editStartTime">من الساعة *</label>
+                      <input
+                        type="time"
+                        id="editStartTime"
+                        name="editStartTime"
+                        [(ngModel)]="vm.editSlotStartTime"
+                        required />
+                    </div>
+
+                    <div class="form-field">
+                      <label for="editEndTime">إلى الساعة *</label>
+                      <input
+                        type="time"
+                        id="editEndTime"
+                        name="editEndTime"
+                        [(ngModel)]="vm.editSlotEndTime"
+                        required />
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-field">
+                      <label for="editStatus">الحالة *</label>
+                      <select
+                        id="editStatus"
+                        name="editStatus"
+                        [(ngModel)]="vm.editSlotStatus">
+                        <option value="Available">متاح</option>
+                        <option value="Unavailable">متوقف</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button
+                    type="button"
+                    class="btn-cancel"
+                    (click)="vm.closeEditSlotModal()">
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    class="primary-btn"
+                    [disabled]="vm.isEditingSlotLoading">
+                    {{ vm.isEditingSlotLoading ? 'جاري الحفظ...' : 'حفظ التعديلات' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          }
 
         </section>
       }

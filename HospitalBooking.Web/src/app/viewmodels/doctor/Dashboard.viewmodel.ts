@@ -36,6 +36,7 @@ export class DashboardViewModel {
   phone = '';
   specialization = '';
   doctorId: number | null = null;
+  userId: number | null = null;
   role = 'طبيب';
   accountStatus = '';
   createdAt = '';
@@ -53,6 +54,15 @@ export class DashboardViewModel {
   newSlotDate = '';
   newSlotStartTime = '';
   newSlotEndTime = '';
+
+  // تعديل الفترة المتاحة
+  isEditSlotModalOpen = false;
+  editSlotId: number | null = null;
+  editSlotDate = '';
+  editSlotStartTime = '';
+  editSlotEndTime = '';
+  editSlotStatus = 'Available';
+  isEditingSlotLoading = false;
 
   
   workDays: WorkDay[] = [
@@ -78,6 +88,7 @@ export class DashboardViewModel {
     }
 
     this.doctorId = currentUser.id;
+    this.userId = currentUser.id;
     this.doctorName = currentUser.fullName || '';
     this.email = currentUser.email || '';
     this.phone = currentUser.phoneNumber || '';
@@ -100,6 +111,12 @@ export class DashboardViewModel {
     this.doctorService.getDoctor(this.doctorId).subscribe({
       next: (profile) => {
         if (profile) {
+          if (profile.id) {
+            this.doctorId = profile.id;
+          }
+          if (profile.userId) {
+            this.userId = profile.userId;
+          }
           this.doctorName = profile.fullName || profile.name || this.doctorName;
           this.email = profile.email || this.email;
           this.phone = profile.phoneNumber || profile.phone || this.phone;
@@ -216,7 +233,10 @@ export class DashboardViewModel {
       return;
     }
 
-    if (!this.doctorId) return;
+    if (!this.doctorId) {
+      this.formError = 'تعذر العثور على بيانات الطبيب، يرجى إعادة تسجيل الدخول.';
+      return;
+    }
 
     const request = {
       date: this.newSlotDate,
@@ -225,23 +245,31 @@ export class DashboardViewModel {
       status: 'Available'
     };
 
+    const addedDate = this.newSlotDate;
+    const addedStartTime = this.newSlotStartTime;
+    const addedEndTime = this.newSlotEndTime;
+
+    this.isLoading = true;
     this.slotService.addSlot(this.doctorId, request).subscribe({
       next: (created) => {
-        this.slots.unshift({
-          id: created?.slotId || Date.now(),
+        this.isLoading = false;
+        const newSlot: DoctorSlot = {
+          id: (created as any)?.slotId || (created as any)?.id || Date.now(),
           doctorId: this.doctorId!,
-          date: this.newSlotDate,
-          startTime: this.newSlotStartTime,
-          endTime: this.newSlotEndTime,
+          date: addedDate,
+          startTime: addedStartTime,
+          endTime: addedEndTime,
           status: 'Available',
           isActive: true
-        });
+        };
+        this.slots = [newSlot, ...this.slots];
         this.newSlotDate = '';
         this.newSlotStartTime = '';
         this.newSlotEndTime = '';
         this.successMessage = 'تمت إضافة الفترة المتاحة بنجاح.';
       },
       error: (err) => {
+        this.isLoading = false;
         this.formError = extractApiErrorMessage(err, 'تعذر إضافة الفترة المتاحة.');
       }
     });
@@ -296,6 +324,89 @@ export class DashboardViewModel {
       },
       error: (err) => {
         this.formError = extractApiErrorMessage(err, 'تعذر تفعيل الفترة المتاحة.');
+      }
+    });
+  }
+
+  openEditSlotModal(slot: DoctorSlot): void {
+    this.dismissFormError();
+    this.dismissSuccessMessage();
+    this.editSlotId = slot.id;
+    this.editSlotDate = slot.date;
+    this.editSlotStartTime = slot.startTime;
+    this.editSlotEndTime = slot.endTime;
+    this.editSlotStatus = slot.status || (slot.isActive ? 'Available' : 'Unavailable');
+    this.isEditSlotModalOpen = true;
+  }
+
+  closeEditSlotModal(): void {
+    this.isEditSlotModalOpen = false;
+    this.editSlotId = null;
+    this.editSlotDate = '';
+    this.editSlotStartTime = '';
+    this.editSlotEndTime = '';
+    this.editSlotStatus = 'Available';
+    this.isEditingSlotLoading = false;
+  }
+
+  saveSlotEdit(): void {
+    if (!this.editSlotId) return;
+
+    this.dismissFormError();
+    this.dismissSuccessMessage();
+
+    if (!this.editSlotDate || !this.editSlotStartTime || !this.editSlotEndTime) {
+      this.formError = 'يرجى ملء جميع حقول الوقت والتاريخ.';
+      return;
+    }
+
+    if (this.editSlotEndTime <= this.editSlotStartTime) {
+      this.formError = 'وقت نهاية الفترة يجب أن يكون بعد وقت البداية.';
+      return;
+    }
+
+    const hasConflict = this.slots.some(s =>
+      s.id !== this.editSlotId &&
+      s.isActive &&
+      s.date === this.editSlotDate &&
+      this.editSlotStartTime < s.endTime &&
+      this.editSlotEndTime > s.startTime
+    );
+
+    if (hasConflict) {
+      this.formError = 'هذا الوقت يتداخل مع فترة عمل أخرى مسجلة.';
+      return;
+    }
+
+    this.isEditingSlotLoading = true;
+    const request = {
+      date: this.editSlotDate,
+      startTime: this.editSlotStartTime,
+      endTime: this.editSlotEndTime,
+      status: this.editSlotStatus
+    };
+
+    this.slotService.updateSlot(this.editSlotId, request).subscribe({
+      next: (updated) => {
+        this.isEditingSlotLoading = false;
+        const index = this.slots.findIndex(s => s.id === this.editSlotId);
+        if (index !== -1) {
+          this.slots[index] = {
+            ...this.slots[index],
+            date: this.editSlotDate,
+            startTime: this.editSlotStartTime,
+            endTime: this.editSlotEndTime,
+            status: this.editSlotStatus,
+            isActive: this.editSlotStatus === 'Available'
+          };
+          this.slots = [...this.slots];
+        }
+        this.closeEditSlotModal();
+        this.successMessage = 'تم تعديل الفترة المتاحة بنجاح.';
+      },
+      error: (err) => {
+        this.isEditingSlotLoading = false;
+        this.formError = err?.error?.message || 'تعذر تعديل الفترة المتاحة.';
       }
     });
   }
@@ -356,10 +467,26 @@ export class DashboardViewModel {
       return;
     }
 
-    this.currentPassword = '';
-    this.newPassword = '';
-    this.confirmNewPassword = '';
-    this.successMessage = 'تم التحقق من تطابق كلمة المرور بنجاح.';
+    const targetUserId = this.userId || this.doctorId;
+    if (!targetUserId) {
+      this.formError = 'تعذر تحديد معرف المستخدم.';
+      return;
+    }
+
+    this.isLoading = true;
+    this.doctorService.changePassword(targetUserId, { currentPassword: current, newPassword: next }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.currentPassword = '';
+        this.newPassword = '';
+        this.confirmNewPassword = '';
+        this.successMessage = 'تم تغيير كلمة المرور بنجاح.';
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.formError = err?.error?.message || err?.error?.errors?.NewPassword?.[0] || 'فشل تغيير كلمة المرور. يرجى التأكد من صحة كلمة المرور الحالية.';
+      }
+    });
   }
 
   dismissSuccessMessage(): void {
