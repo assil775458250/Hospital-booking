@@ -217,10 +217,7 @@ namespace HospitalBooking.API.Services.Admin
         public async Task<ServiceResponse<List<DoctorDto>>> GetDoctorsAsync(int? specializationId, string? status, string? search)
         {
             var query = _context.Doctors
-                .Include(d => d.User)
-                .Include(d => d.Clinic)
-                .Include(d => d.AppointmentSlots)
-                    .ThenInclude(s => s.Bookings)
+                .AsNoTracking()
                 .AsQueryable();
 
             if (specializationId.HasValue && specializationId.Value > 0)
@@ -243,26 +240,26 @@ namespace HospitalBooking.API.Services.Admin
                     (d.Clinic != null && d.Clinic.Specialty.ToLower().Contains(term)));
             }
 
-            var doctors = await query.ToListAsync();
-
-            var result = doctors.Select(d => new DoctorDto
-            {
-                Id = d.DoctorId,
-                UserId = d.UserId,
-                FullName = d.User?.FullName ?? string.Empty,
-                Email = d.User?.Email ?? string.Empty,
-                PhoneNumber = d.User?.PhoneNumber ?? string.Empty,
-                SpecializationId = d.ClinicId,
-                SpecializationName = d.Clinic?.ClinicName ?? string.Empty,
-                Clinic = d.Clinic?.ClinicName ?? string.Empty,
-                Bio = d.Bio ?? string.Empty,
-                Experience = string.Empty,
-                Rating = 5.0,
-                AvailabilityStatus = "Available",
-                ProfileImageUrl = d.ProfileImage,
-                AccountStatus = d.User?.IsActive == true ? "Active" : "Inactive",
-                AppointmentsCount = d.AppointmentSlots.SelectMany(s => s.Bookings).Count()
-            }).ToList();
+            var result = await query
+                .Select(d => new DoctorDto
+                {
+                    Id = d.DoctorId,
+                    UserId = d.UserId,
+                    FullName = d.User != null ? d.User.FullName : string.Empty,
+                    Email = d.User != null ? d.User.Email : string.Empty,
+                    PhoneNumber = d.User != null ? d.User.PhoneNumber : string.Empty,
+                    SpecializationId = d.ClinicId,
+                    SpecializationName = d.Clinic != null ? d.Clinic.ClinicName : string.Empty,
+                    Clinic = d.Clinic != null ? d.Clinic.ClinicName : string.Empty,
+                    Bio = d.Bio ?? string.Empty,
+                    Experience = string.Empty,
+                    Rating = 5.0,
+                    AvailabilityStatus = "Available",
+                    ProfileImageUrl = d.ProfileImage,
+                    AccountStatus = d.User != null && d.User.IsActive ? "Active" : "Inactive",
+                    AppointmentsCount = d.AppointmentSlots.SelectMany(s => s.Bookings).Count()
+                })
+                .ToListAsync();
 
             return ServiceResponse<List<DoctorDto>>.Ok(result);
         }

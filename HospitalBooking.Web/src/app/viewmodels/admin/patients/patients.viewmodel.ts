@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { Patient, UpdatePatientRequest } from '../../../models/admin/patients/patient.model';
 import { PatientsService } from '../../../services/admin/patients/patients.service';
 
@@ -6,15 +6,32 @@ import { PatientsService } from '../../../services/admin/patients/patients.servi
 export class PatientsViewModel {
   private readonly patientsService = inject(PatientsService);
 
-  searchTerm = '';
-  patients: Patient[] = [];
-  filteredPatients: Patient[] = [];
+  readonly isLoading = signal(true);
+  readonly searchTerm = signal('');
+  readonly patients = signal<Patient[]>([]);
+
+  readonly filteredPatients = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const list = this.patients();
+    if (!term) {
+      return list;
+    }
+    return list.filter((patient) =>
+      patient.fullName.toLowerCase().includes(term) ||
+      patient.email.toLowerCase().includes(term) ||
+      patient.phoneNumber.includes(term)
+    );
+  });
+
+  readonly totalCount = computed(() => this.patients().length);
+  readonly filteredCount = computed(() => this.filteredPatients().length);
 
   // حالة النوافذ المنبثقة والرسائل
-  isDetailsModalOpen = false;
-  selectedPatientForDetails: Patient | null = null;
+  readonly isDetailsModalOpen = signal(false);
+  readonly selectedPatientForDetails = signal<Patient | null>(null);
 
-  isEditModalOpen = false;
+  readonly isEditModalOpen = signal(false);
+  readonly isSaving = signal(false);
   editingPatientId: number | null = null;
   editForm: UpdatePatientRequest = {
     fullName: '',
@@ -22,52 +39,44 @@ export class PatientsViewModel {
     email: '',
   };
 
-  formError = '';
-  successMessage = '';
+  readonly formError = signal('');
+  readonly successMessage = signal('');
 
   constructor() {
     this.loadPatients();
   }
 
   loadPatients(): void {
+    this.isLoading.set(true);
     this.patientsService.getPatients().subscribe({
       next: (patients: Patient[]) => {
-        this.patients = patients.map((patient) => this.mapPatient(patient));
-        this.applyFilters();
+        this.patients.set(patients.map((patient) => this.mapPatient(patient)));
+        this.isLoading.set(false);
       },
       error: (err) => {
-        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات المرضى.');
+        this.formError.set(this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات المرضى.'));
+        this.isLoading.set(false);
       },
     });
   }
 
-  applyFilters(): void {
-    const term = this.searchTerm.trim().toLowerCase();
-
-    this.filteredPatients = this.patients.filter((patient) => {
-      return (
-        !term ||
-        patient.fullName.toLowerCase().includes(term) ||
-        patient.email.toLowerCase().includes(term) ||
-        patient.phoneNumber.includes(term)
-      );
-    });
+  setSearchTerm(term: string): void {
+    this.searchTerm.set(term);
   }
 
   resetFilters(): void {
-    this.searchTerm = '';
-    this.applyFilters();
+    this.searchTerm.set('');
   }
 
   // نافذة عرض التفاصيل
   openDetailsModal(patient: Patient): void {
-    this.selectedPatientForDetails = patient;
-    this.isDetailsModalOpen = true;
+    this.selectedPatientForDetails.set(patient);
+    this.isDetailsModalOpen.set(true);
   }
 
   closeDetailsModal(): void {
-    this.selectedPatientForDetails = null;
-    this.isDetailsModalOpen = false;
+    this.selectedPatientForDetails.set(null);
+    this.isDetailsModalOpen.set(false);
   }
 
   // نافذة تعديل البيانات
@@ -78,31 +87,31 @@ export class PatientsViewModel {
       phoneNumber: patient.phoneNumber,
       email: patient.email,
     };
-    this.formError = '';
-    this.isEditModalOpen = true;
+    this.formError.set('');
+    this.isEditModalOpen.set(true);
   }
 
   closeEditModal(): void {
     this.editingPatientId = null;
-    this.formError = '';
-    this.isEditModalOpen = false;
+    this.formError.set('');
+    this.isEditModalOpen.set(false);
   }
 
   savePatient(): void {
-    this.formError = '';
+    this.formError.set('');
 
     const name = this.editForm.fullName.trim();
     const phone = this.editForm.phoneNumber.trim();
     const email = this.editForm.email.trim();
 
     if (!name || !phone || !email) {
-      this.formError = 'يرجى ملء جميع الحقول المطلوبة (الاسم الكامل، رقم الهاتف، والبريد الإلكتروني).';
+      this.formError.set('يرجى ملء جميع الحقول المطلوبة (الاسم الكامل، رقم الهاتف، والبريد الإلكتروني).');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      this.formError = 'يرجى إدخال بريد إلكتروني صالح.';
+      this.formError.set('يرجى إدخال بريد إلكتروني صالح.');
       return;
     }
 
@@ -116,28 +125,23 @@ export class PatientsViewModel {
       email: email,
     };
 
+    this.isSaving.set(true);
     this.patientsService.updatePatient(this.editingPatientId, request).subscribe({
       next: () => {
-        this.successMessage = `تم تحديث بيانات المريض (${name}) بنجاح.`;
+        this.isSaving.set(false);
+        this.successMessage.set(`تم تحديث بيانات المريض (${name}) بنجاح.`);
         this.loadPatients();
         this.closeEditModal();
       },
       error: (err) => {
-        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات المريض.');
+        this.isSaving.set(false);
+        this.formError.set(this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات المريض.'));
       },
     });
   }
 
   dismissSuccessMessage(): void {
-    this.successMessage = '';
-  }
-
-  get totalCount(): number {
-    return this.patients.length;
-  }
-
-  get filteredCount(): number {
-    return this.filteredPatients.length;
+    this.successMessage.set('');
   }
 
   getInitial(name: string): string {
@@ -154,12 +158,14 @@ export class PatientsViewModel {
     }
     return err?.message || fallback;
   }
+
   formatDate(dateValue: string | null | undefined): string {
     if (!dateValue) {
       return '-';
     }
     return dateValue.split('T')[0];
   }
+
   private mapPatient(patient: Patient): Patient {
     return {
       ...patient,
