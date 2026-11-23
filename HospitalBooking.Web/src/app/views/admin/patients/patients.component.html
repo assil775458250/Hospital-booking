@@ -8,11 +8,11 @@
   </div>
 
   <!-- رسالة النجاح -->
-  @if (vm.successMessage) {
+  @if (vm.successMessage()) {
     <div class="success-banner" role="alert">
       <div class="success-content">
         <span class="success-icon">✅</span>
-        <span>{{ vm.successMessage }}</span>
+        <span>{{ vm.successMessage() }}</span>
       </div>
       <button type="button" class="close-alert-btn" (click)="vm.dismissSuccessMessage()" aria-label="إغلاق التنبيه">✕</button>
     </div>
@@ -29,13 +29,13 @@
           id="searchPatient"
           class="form-control search-input"
           placeholder="ابحث بالاسم، البريد أو الهاتف..."
-          [(ngModel)]="vm.searchTerm"
-          (ngModelChange)="vm.applyFilters()"
+          [ngModel]="vm.searchTerm()"
+          (ngModelChange)="vm.setSearchTerm($event)"
         />
       </div>
     </div>
 
-    @if (vm.searchTerm) {
+    @if (vm.searchTerm()) {
       <div class="filter-actions">
         <button type="button" class="reset-btn" (click)="vm.resetFilters()">
           <span>إعادة تعيين</span>
@@ -48,11 +48,17 @@
   <div class="table-card">
     <div class="table-meta">
       <span class="results-count">
-        عدد المرضى المعروضين: <strong>{{ vm.filteredCount }}</strong> من إجمالي <strong>{{ vm.totalCount }}</strong>
+        عدد المرضى المعروضين: <strong>{{ vm.filteredCount() }}</strong> من إجمالي <strong>{{ vm.totalCount() }}</strong>
       </span>
     </div>
 
-    @if (vm.filteredPatients.length > 0) {
+    @if (vm.isLoading()) {
+      <div class="empty-results">
+        <span class="empty-icon">⏳</span>
+        <h4>جاري تحميل بيانات المرضى...</h4>
+        <p>يرجى الانتظار لحظات ريثما يتم جلب قائمة المرضى المسجلين.</p>
+      </div>
+    } @else if (vm.filteredPatients().length > 0) {
       <div class="table-responsive">
         <table class="patients-table">
           <thead>
@@ -67,7 +73,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (patient of vm.filteredPatients; track patient.id) {
+            @for (patient of vm.filteredPatients(); track patient.id) {
               <tr>
                 <td class="td-avatar">
                   <div class="patient-avatar-fallback">
@@ -108,18 +114,24 @@
           </tbody>
         </table>
       </div>
+    } @else if (vm.patients().length === 0) {
+      <div class="empty-results">
+        <span class="empty-icon">👥</span>
+        <h4>لا يوجد مرضى مسجلون حالياً</h4>
+        <p>لم يتم تسجيل أي مرضى في النظام حتى الآن. ستظهر بيانات المرضى هنا تلقائياً عند تسجيلهم.</p>
+      </div>
     } @else {
       <div class="empty-results">
         <span class="empty-icon">🔍</span>
         <h4>لا توجد نتائج مطابقة</h4>
-        <p>لم نجد أي مرضى يطابقون معايير البحث المحددة. جرب تعديل الكلمات أو إعادة تعيين البحث.</p>
+        <p>لم نجد أي مرضى يطابقون كلمة البحث: "{{ vm.searchTerm() }}". جرب تعديل الكلمات أو إعادة تعيين البحث.</p>
         <button type="button" class="reset-link-btn" (click)="vm.resetFilters()">إعادة تعيين البحث</button>
       </div>
     }
   </div>
 
   <!-- نافذة عرض التفاصيل -->
-  @if (vm.isDetailsModalOpen && vm.selectedPatientForDetails) {
+  @if (vm.isDetailsModalOpen() && vm.selectedPatientForDetails(); as patient) {
     <div class="modal-backdrop" (click)="vm.closeDetailsModal()"></div>
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="detailsTitle">
       <div class="modal-header">
@@ -133,19 +145,19 @@
           <div class="details-grid">
             <div class="detail-item">
               <span class="detail-label">الاسم الكامل</span>
-              <span class="detail-value">{{ vm.selectedPatientForDetails.fullName }}</span>
+              <span class="detail-value">{{ patient.fullName }}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">رقم الهاتف</span>
-              <span class="detail-value ltr-text">{{ vm.selectedPatientForDetails.phoneNumber }}</span>
+              <span class="detail-value ltr-text">{{ patient.phoneNumber }}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">البريد الإلكتروني</span>
-              <span class="detail-value ltr-text">{{ vm.selectedPatientForDetails.email }}</span>
+              <span class="detail-value ltr-text">{{ patient.email }}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">تاريخ التسجيل</span>
-              <span class="detail-value ltr-text">{{ vm.selectedPatientForDetails.createdAt }}</span>
+              <span class="detail-value ltr-text">{{ patient.createdAt }}</span>
             </div>
           </div>
         </div>
@@ -154,19 +166,19 @@
           <h4 class="section-heading">إحصائيات المواعيد</h4>
           <div class="stats-grid">
             <div class="stat-card stat-total">
-              <span class="stat-num">{{ vm.selectedPatientForDetails.statistics.totalAppointments }}</span>
+              <span class="stat-num">{{ patient.statistics.totalAppointments }}</span>
               <span class="stat-name">إجمالي المواعيد</span>
             </div>
             <div class="stat-card stat-upcoming">
-              <span class="stat-num">{{ vm.selectedPatientForDetails.statistics.upcomingAppointments }}</span>
+              <span class="stat-num">{{ patient.statistics.upcomingAppointments }}</span>
               <span class="stat-name">المواعيد القادمة</span>
             </div>
             <div class="stat-card stat-completed">
-              <span class="stat-num">{{ vm.selectedPatientForDetails.statistics.completedAppointments }}</span>
+              <span class="stat-num">{{ patient.statistics.completedAppointments }}</span>
               <span class="stat-name">المواعيد المكتملة</span>
             </div>
             <div class="stat-card stat-cancelled">
-              <span class="stat-num">{{ vm.selectedPatientForDetails.statistics.cancelledAppointments }}</span>
+              <span class="stat-num">{{ patient.statistics.cancelledAppointments }}</span>
               <span class="stat-name">المواعيد الملغاة</span>
             </div>
           </div>
@@ -180,7 +192,7 @@
   }
 
   <!-- نافذة تعديل البيانات -->
-  @if (vm.isEditModalOpen) {
+  @if (vm.isEditModalOpen()) {
     <div class="modal-backdrop" (click)="vm.closeEditModal()"></div>
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editTitle">
       <div class="modal-header">
@@ -188,9 +200,9 @@
         <button type="button" class="modal-close-btn" (click)="vm.closeEditModal()" aria-label="إغلاق">✕</button>
       </div>
 
-      @if (vm.formError) {
+      @if (vm.formError()) {
         <div class="form-error-banner" role="alert">
-          <span>⚠️ {{ vm.formError }}</span>
+          <span>⚠️ {{ vm.formError() }}</span>
         </div>
       }
 
@@ -236,7 +248,13 @@
 
         <div class="modal-footer">
           <button type="button" class="btn-cancel" (click)="vm.closeEditModal()">إلغاء</button>
-          <button type="submit" class="btn-save">حفظ التعديلات</button>
+          <button type="submit" class="btn-save" [disabled]="vm.isSaving()">
+            @if (vm.isSaving()) {
+              <span>جاري الحفظ...</span>
+            } @else {
+              <span>حفظ التعديلات</span>
+            }
+          </button>
         </div>
       </form>
     </div>

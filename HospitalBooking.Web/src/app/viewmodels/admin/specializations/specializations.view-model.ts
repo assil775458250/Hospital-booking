@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { Doctor } from '../../../models/admin/doctors/doctor.model';
 import {
   CreateSpecializationRequest,
@@ -20,82 +21,102 @@ export class SpecializationsViewModel {
   private readonly specializationsService = inject(SpecializationsService);
   private readonly doctorsService = inject(DoctorsService);
 
-  // حالات التحميل والرسائل
-  isLoading = false;
-  formError = '';
-  successMessage = '';
+  // حالات التحميل والعمليات
+  readonly isLoading = signal(true);
+  readonly isSaving = signal(false);
+  readonly formError = signal('');
+  readonly successMessage = signal('');
 
   // فلاتر البحث والتصفية
-  searchTerm = '';
-  selectedStatus: SpecializationStatus | '' = '';
+  readonly searchTerm = signal('');
+  readonly selectedStatus = signal<SpecializationStatus | ''>('');
 
   // بيانات التخصصات
-  specializations: Specialization[] = [];
-  filteredSpecializations: Specialization[] = [];
-
-  // قائمة جميع الأطباء للربط والتصفية
-  doctors: Doctor[] = [];
+  readonly specializations = signal<Specialization[]>([]);
 
   // حالة نافذة إضافة / تعديل تخصص
-  isModalOpen = false;
-  isEditMode = false;
+  readonly isModalOpen = signal(false);
+  readonly isEditMode = signal(false);
   editingSpecializationId: number | null = null;
   specializationForm: SpecializationFormData = this.getEmptyForm();
 
   // حالة نافذة عرض الأطباء المرتبطين بالتخصص
-  isDoctorsModalOpen = false;
-  selectedSpecialization: Specialization | null = null;
-  associatedDoctors: Doctor[] = [];
+  readonly isDoctorsModalOpen = signal(false);
+  readonly isLoadingDoctors = signal(false);
+  readonly selectedSpecialization = signal<Specialization | null>(null);
+  readonly associatedDoctors = signal<Doctor[]>([]);
+
+  // الحسابات والإحصائيات التفاعلية (Computed Signals)
+  readonly filteredSpecializations = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const status = this.selectedStatus();
+    const list = this.specializations();
+
+    return list.filter((spec) => {
+      const matchesSearch =
+        !term ||
+        spec.name.toLowerCase().includes(term) ||
+        (spec.description && spec.description.toLowerCase().includes(term));
+
+      const matchesStatus = !status || spec.status === status;
+
+      return matchesSearch && matchesStatus;
+    });
+  });
+
+  readonly totalCount = computed(() => this.specializations().length);
+  readonly filteredCount = computed(() => this.filteredSpecializations().length);
+  readonly activeCount = computed(
+    () => this.specializations().filter((s) => s.status === 'Active').length
+  );
+  readonly inactiveCount = computed(
+    () => this.specializations().filter((s) => s.status === 'Inactive').length
+  );
+  readonly totalDoctorsCount = computed(() =>
+    this.specializations().reduce((sum, s) => sum + (s.doctorsCount || 0), 0)
+  );
 
   constructor() {
     this.loadSpecializations();
   }
 
   loadSpecializations(): void {
-    this.isLoading = true;
-    this.formError = '';
+    this.isLoading.set(true);
+    this.formError.set('');
 
     this.specializationsService.getSpecializations().subscribe({
       next: (data) => {
-        this.specializations = data;
-        this.applyFilters();
-        this.isLoading = false;
+        this.specializations.set(data || []);
+        this.isLoading.set(false);
       },
       error: (err) => {
-        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات التخصصات.');
-        this.isLoading = false;
+        this.formError.set(
+          this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات التخصصات.')
+        );
+        this.isLoading.set(false);
       },
     });
   }
 
-  applyFilters(): void {
-    const term = this.searchTerm.trim().toLowerCase();
+  setSearchTerm(term: string): void {
+    this.searchTerm.set(term);
+  }
 
-    this.filteredSpecializations = this.specializations.filter((spec) => {
-      const matchesSearch =
-        !term ||
-        spec.name.toLowerCase().includes(term) ||
-        (spec.description && spec.description.toLowerCase().includes(term));
-
-      const matchesStatus =
-        !this.selectedStatus || spec.status === this.selectedStatus;
-
-      return matchesSearch && matchesStatus;
-    });
+  setSelectedStatus(status: SpecializationStatus | ''): void {
+    this.selectedStatus.set(status);
   }
 
   resetFilters(): void {
-    this.searchTerm = '';
-    this.selectedStatus = '';
-    this.applyFilters();
+    this.searchTerm.set('');
+    this.selectedStatus.set('');
   }
 
   openAddModal(): void {
     this.specializationForm = this.getEmptyForm();
-    this.isEditMode = false;
+    this.isEditMode.set(false);
     this.editingSpecializationId = null;
-    this.formError = '';
-    this.isModalOpen = true;
+    this.formError.set('');
+    this.isModalOpen.set(true);
   }
 
   openEditModal(specialization: Specialization): void {
@@ -104,31 +125,34 @@ export class SpecializationsViewModel {
       description: specialization.description || '',
       status: specialization.status,
     };
-    this.isEditMode = true;
+    this.isEditMode.set(true);
     this.editingSpecializationId = specialization.id;
-    this.formError = '';
-    this.isModalOpen = true;
+    this.formError.set('');
+    this.isModalOpen.set(true);
   }
 
   closeModal(): void {
-    this.isModalOpen = false;
-    this.formError = '';
+    this.isModalOpen.set(false);
+    this.isSaving.set(false);
+    this.formError.set('');
     this.editingSpecializationId = null;
   }
 
   saveSpecialization(): void {
-    this.formError = '';
+    this.formError.set('');
 
     const name = this.specializationForm.name.trim();
     const description = this.specializationForm.description.trim() || null;
     const status = this.specializationForm.status;
 
     if (!name) {
-      this.formError = 'يرجى إدخال اسم التخصص.';
+      this.formError.set('يرجى إدخال اسم التخصص.');
       return;
     }
 
-    if (this.isEditMode && this.editingSpecializationId !== null) {
+    this.isSaving.set(true);
+
+    if (this.isEditMode() && this.editingSpecializationId !== null) {
       const request: UpdateSpecializationRequest = {
         name: name,
         description: description,
@@ -139,12 +163,16 @@ export class SpecializationsViewModel {
         .updateSpecialization(this.editingSpecializationId, request)
         .subscribe({
           next: (updatedSpec) => {
-            this.triggerSuccess(`تم تحديث التخصص (${updatedSpec.name}) بنجاح.`);
+            const specName = updatedSpec?.name || name;
+            this.triggerSuccess(`تم تحديث التخصص (${specName}) بنجاح.`);
             this.loadSpecializations();
             this.closeModal();
           },
           error: (err) => {
-            this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات التخصص.');
+            this.isSaving.set(false);
+            this.formError.set(
+              this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات التخصص.')
+            );
           },
         });
     } else {
@@ -155,20 +183,24 @@ export class SpecializationsViewModel {
       };
 
       this.specializationsService.createSpecialization(request).subscribe({
-        next: (newSpec) => {
-          this.triggerSuccess(`تمت إضافة التخصص (${newSpec.name}) بنجاح.`);
+        next: (newSpec: any) => {
+          const specName = newSpec?.name || name;
+          this.triggerSuccess(`تمت إضافة التخصص (${specName}) بنجاح.`);
           this.loadSpecializations();
           this.closeModal();
         },
         error: (err) => {
-          this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء إضافة التخصص.');
+          this.isSaving.set(false);
+          this.formError.set(
+            this.extractErrorMessage(err, 'حدث خطأ أثناء إضافة التخصص.')
+          );
         },
       });
     }
   }
 
   deleteSpecialization(id: number): void {
-    const specialization = this.specializations.find((s) => s.id === id);
+    const specialization = this.specializations().find((s) => s.id === id);
     const specName = specialization?.name ? `(${specialization.name})` : '';
     const isConfirmed = window.confirm(
       `هل أنت متأكد من حذف التخصص ${specName}؟ لا يمكن التراجع عن هذا الإجراء.`
@@ -178,61 +210,63 @@ export class SpecializationsViewModel {
       return;
     }
 
-    this.formError = '';
+    this.formError.set('');
 
     this.specializationsService.deleteSpecialization(id).subscribe({
       next: () => {
         this.triggerSuccess('تم حذف التخصص بنجاح.');
         this.loadSpecializations();
-        if (this.selectedSpecialization?.id === id) {
+        if (this.selectedSpecialization()?.id === id) {
           this.closeDoctorsModal();
         }
       },
       error: (err) => {
-        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء محاولة حذف التخصص.');
+        this.formError.set(
+          this.extractErrorMessage(err, 'حدث خطأ أثناء محاولة حذف التخصص.')
+        );
       },
     });
   }
 
   openDoctorsModal(specialization: Specialization): void {
-    this.selectedSpecialization = specialization;
-    this.associatedDoctors = this.doctors.filter(
-      (doc) => doc.specializationId === specialization.id
-    );
-    this.isDoctorsModalOpen = true;
+    this.selectedSpecialization.set(specialization);
+    this.associatedDoctors.set([]);
+    this.isLoadingDoctors.set(true);
+    this.isDoctorsModalOpen.set(true);
 
-    // تحديث قائمة الأطباء للحصول على أحدث البيانات
-    this.doctorsService.getDoctors().subscribe({
-      next: (docs) => { 
-        this.doctors = docs;
-        if (this.selectedSpecialization?.id === specialization.id) {
-          this.associatedDoctors = this.doctors.filter(
-            (doc) => doc.specializationId === specialization.id
-          );
+    this.doctorsService.getDoctors(specialization.id).subscribe({
+      next: (docs) => {
+        if (this.selectedSpecialization()?.id === specialization.id) {
+          this.associatedDoctors.set(docs || []);
         }
+        this.isLoadingDoctors.set(false);
       },
       error: (err) => {
-        this.formError = this.extractErrorMessage(err, 'تعذر تحميل الأطباء المرتبطين بهذا التخصص.');
+        this.isLoadingDoctors.set(false);
+        this.formError.set(
+          this.extractErrorMessage(err, 'تعذر تحميل الأطباء المرتبطين بهذا التخصص.')
+        );
       },
     });
   }
 
   closeDoctorsModal(): void {
-    this.isDoctorsModalOpen = false;
-    this.selectedSpecialization = null;
-    this.associatedDoctors = [];
+    this.isDoctorsModalOpen.set(false);
+    this.isLoadingDoctors.set(false);
+    this.selectedSpecialization.set(null);
+    this.associatedDoctors.set([]);
   }
 
   dismissSuccessMessage(): void {
-    this.successMessage = '';
+    this.successMessage.set('');
   }
 
   dismissFormError(): void {
-    this.formError = '';
+    this.formError.set('');
   }
 
   private triggerSuccess(msg: string): void {
-    this.successMessage = msg;
+    this.successMessage.set(msg);
   }
 
   private getEmptyForm(): SpecializationFormData {
@@ -241,14 +275,6 @@ export class SpecializationsViewModel {
       description: '',
       status: 'Active',
     };
-  }
-
-  get totalCount(): number {
-    return this.specializations.length;
-  }
-
-  get filteredCount(): number {
-    return this.filteredSpecializations.length;
   }
 
   getSpecializationInitial(name: string): string {
@@ -263,12 +289,6 @@ export class SpecializationsViewModel {
   }
 
   private extractErrorMessage(err: any, fallback: string): string {
-    if (typeof err?.error === 'string' && err.error.trim()) {
-      return err.error.trim();
-    }
-    if (err?.error?.message && typeof err.error.message === 'string') {
-      return err.error.message;
-    }
-    return err?.message || fallback;
+    return extractApiErrorMessage(err, fallback);
   }
 }

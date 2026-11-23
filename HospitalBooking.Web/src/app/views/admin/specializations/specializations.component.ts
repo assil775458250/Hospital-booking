@@ -12,17 +12,4 @@ import { SpecializationsViewModel } from '../../../viewmodels/admin/specializati
 })
 export class SpecializationsComponent {
   readonly vm = inject(SpecializationsViewModel);
-
-  // إحصائيات التخصصات
-  get activeCount(): number {
-    return this.vm.specializations.filter((s) => s.status === 'Active').length;
-  }
-
-  get inactiveCount(): number {
-    return this.vm.specializations.filter((s) => s.status === 'Inactive').length;
-  }
-
-  get totalDoctorsCount(): number {
-    return this.vm.specializations.reduce((sum, s) => sum + s.doctorsCount, 0);
-  }
 }

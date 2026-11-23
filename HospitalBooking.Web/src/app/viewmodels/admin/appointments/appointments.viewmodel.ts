@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import {
   Appointment,
   AppointmentStatus,
@@ -10,52 +11,36 @@ import { AppointmentsService } from '../../../services/admin/appointments/appoin
 export class AppointmentsViewModel {
   private readonly appointmentsService = inject(AppointmentsService);
 
-  // بيانات المواعيد
-  appointments: Appointment[] = [];
-  filteredAppointments: Appointment[] = [];
+  // مؤقت الإغلاق التلقائي لرسائل النجاح
+  private successDismissTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // فلاتر البحث والتصفية
-  searchTerm = '';
-  selectedDoctorId: number | null = null;
-  selectedStatus: AppointmentStatus | '' = '';
-  selectedDate = '';
+  // بيانات المواعيد التفاعلية
+  readonly appointments = signal<Appointment[]>([]);
+
+  // فلاتر البحث والتصفية التفاعلية
+  readonly searchTerm = signal<string>('');
+  readonly selectedDoctorId = signal<number | null>(null);
+  readonly selectedStatus = signal<AppointmentStatus | ''>('');
+  readonly selectedDate = signal<string>('');
 
   // حالات التحميل والعمليات
-  isLoading = false;
-  isUpdatingStatus = false;
-  errorMessage = '';
-  successMessage = '';
+  readonly isLoading = signal<boolean>(true);
+  readonly isUpdatingStatus = signal<boolean>(false);
+  readonly errorMessage = signal<string>('');
+  readonly successMessage = signal<string>('');
 
   // حالة نافذة تفاصيل الموعد
-  isDetailsModalOpen = false;
-  selectedAppointment: Appointment | null = null;
+  readonly isDetailsModalOpen = signal<boolean>(false);
+  readonly selectedAppointment = signal<Appointment | null>(null);
 
-  constructor() {
-    this.loadAppointments();
-  }
+  // الحسابات والإحصائيات التفاعلية (Computed Signals)
+  readonly filteredAppointments = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const docId = this.selectedDoctorId();
+    const status = this.selectedStatus();
+    const filterDate = this.selectedDate() ? this.selectedDate().split('T')[0] : '';
 
-  loadAppointments(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.appointmentsService.getAppointments().subscribe({
-      next: (data) => {
-        this.appointments = data;
-        this.applyFilters();
-        this.isLoading = false;
-      },
-      error: (err) => {
-        this.errorMessage = this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل المواعيد.');
-        this.isLoading = false;
-      },
-    });
-  }
-
-  applyFilters(): void {
-    const term = this.searchTerm.trim().toLowerCase();
-    const filterDate = this.selectedDate ? this.selectedDate.split('T')[0] : '';
-
-    this.filteredAppointments = this.appointments.filter((appointment) => {
+    return this.appointments().filter((appointment) => {
       const matchesSearch =
         !term ||
         appointment.appointmentNumber.toLowerCase().includes(term) ||
@@ -64,71 +49,116 @@ export class AppointmentsViewModel {
         appointment.doctorName.toLowerCase().includes(term);
 
       const matchesDoctor =
-        this.selectedDoctorId === null ||
-        this.selectedDoctorId === undefined ||
-        appointment.doctorId === this.selectedDoctorId;
+        docId === null ||
+        docId === undefined ||
+        appointment.doctorId === docId;
 
       const matchesStatus =
-        !this.selectedStatus ||
-        appointment.status === this.selectedStatus;
+        !status ||
+        appointment.status === status;
 
       const matchesDate =
         !filterDate ||
-        appointment.appointmentDate.split('T')[0] === filterDate;
+        (appointment.appointmentDate && appointment.appointmentDate.split('T')[0] === filterDate);
 
-      return (
-        matchesSearch &&
-        matchesDoctor &&
-        matchesStatus &&
-        matchesDate
-      );
+      return matchesSearch && matchesDoctor && matchesStatus && matchesDate;
+    });
+  });
+
+  readonly totalCount = computed(() => this.appointments().length);
+  readonly filteredCount = computed(() => this.filteredAppointments().length);
+
+  readonly pendingCount = computed(
+    () => this.appointments().filter((a) => a.status === 'Pending').length
+  );
+
+  readonly approvedCount = computed(
+    () => this.appointments().filter((a) => a.status === 'Approved').length
+  );
+
+  readonly cancelledCount = computed(
+    () => this.appointments().filter((a) => a.status === 'Cancelled').length
+  );
+
+  // استخراج قائمة الأطباء الفريدة بكفاءة تفاعلية
+  readonly doctorsList = computed<{ id: number; name: string }[]>(() => {
+    const map = new Map<number, string>();
+    for (const a of this.appointments()) {
+      if (!map.has(a.doctorId)) {
+        map.set(a.doctorId, a.doctorName);
+      }
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  });
+
+  constructor() {
+    this.loadAppointments();
+  }
+
+  loadAppointments(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    this.appointmentsService.getAppointments().subscribe({
+      next: (data) => {
+        this.appointments.set(Array.isArray(data) ? data : []);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.errorMessage.set(this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل المواعيد.'));
+        this.isLoading.set(false);
+      },
     });
   }
 
   resetFilters(): void {
-    this.searchTerm = '';
-    this.selectedDoctorId = null;
-    this.selectedStatus = '';
-    this.selectedDate = '';
-    this.applyFilters();
+    this.searchTerm.set('');
+    this.selectedDoctorId.set(null);
+    this.selectedStatus.set('');
+    this.selectedDate.set('');
   }
 
   openDetailsModal(appointment: Appointment): void {
-    this.selectedAppointment = appointment;
-    this.isDetailsModalOpen = true;
+    this.selectedAppointment.set(appointment);
+    this.isDetailsModalOpen.set(true);
   }
 
   closeDetailsModal(): void {
-    this.selectedAppointment = null;
-    this.isDetailsModalOpen = false;
+    this.selectedAppointment.set(null);
+    this.isDetailsModalOpen.set(false);
   }
 
   updateAppointmentStatus(id: number, status: AppointmentStatus): void {
-    this.isUpdatingStatus = true;
-    this.errorMessage = '';
+    this.isUpdatingStatus.set(true);
+    this.errorMessage.set('');
 
     const request: UpdateAppointmentStatusRequest = { status };
 
     this.appointmentsService.updateAppointmentStatus(id, request).subscribe({
       next: (updatedAppointment) => {
-        const index = this.appointments.findIndex((a) => a.id === id);
-        if (index !== -1) {
-          this.appointments[index] = updatedAppointment;
-        }
+        this.appointments.update((current) =>
+          current.map((a) => (a.id === id ? { ...a, ...updatedAppointment, status } : a))
+        );
 
-        this.applyFilters();
-
-        if (this.selectedAppointment && this.selectedAppointment.id === id) {
-          this.selectedAppointment = updatedAppointment;
+        if (this.selectedAppointment()?.id === id) {
+          this.selectedAppointment.set({
+            ...this.selectedAppointment()!,
+            ...updatedAppointment,
+            status,
+          });
         }
 
         const label = this.getStatusLabel(status);
-        this.successMessage = `تم تحديث حالة الموعد رقم (${updatedAppointment.appointmentNumber}) إلى "${label}" بنجاح.`;
-        this.isUpdatingStatus = false;
+        const aptNumber =
+          updatedAppointment?.appointmentNumber ||
+          this.appointments().find((a) => a.id === id)?.appointmentNumber ||
+          id;
+        this.triggerSuccess(`تم تحديث حالة الموعد رقم (${aptNumber}) إلى "${label}" بنجاح.`);
+        this.isUpdatingStatus.set(false);
       },
       error: (err) => {
-        this.errorMessage = this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث حالة الموعد.');
-        this.isUpdatingStatus = false;
+        this.errorMessage.set(this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث حالة الموعد.'));
+        this.isUpdatingStatus.set(false);
       },
     });
   }
@@ -147,24 +177,22 @@ export class AppointmentsViewModel {
   }
 
   dismissSuccessMessage(): void {
-    this.successMessage = '';
+    if (this.successDismissTimer) {
+      clearTimeout(this.successDismissTimer);
+      this.successDismissTimer = null;
+    }
+    this.successMessage.set('');
   }
 
-  get totalCount(): number {
-    return this.appointments.length;
-  }
-
-  get filteredCount(): number {
-    return this.filteredAppointments.length;
+  private triggerSuccess(msg: string): void {
+    this.dismissSuccessMessage();
+    this.successMessage.set(msg);
+    this.successDismissTimer = setTimeout(() => {
+      this.successMessage.set('');
+    }, 4000);
   }
 
   private extractErrorMessage(err: any, fallback: string): string {
-  if (typeof err?.error === 'string' && err.error.trim()) {
-    return err.error.trim();
+    return extractApiErrorMessage(err, fallback);
   }
-  if (err?.error?.message && typeof err.error.message === 'string') {
-    return err.error.message;
-  }
-  return err?.message || fallback;
-}
 }

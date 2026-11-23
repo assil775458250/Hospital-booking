@@ -8,11 +8,11 @@
   </div>
 
   <!-- تنبيهات النجاح والخطأ -->
-  @if (vm.successMessage) {
+  @if (vm.successMessage()) {
     <div class="alert-banner success-banner" role="alert">
       <div class="alert-content">
         <span class="alert-icon">✅</span>
-        <span>{{ vm.successMessage }}</span>
+        <span>{{ vm.successMessage() }}</span>
       </div>
       <button
         type="button"
@@ -25,11 +25,11 @@
     </div>
   }
 
-  @if (vm.formError) {
+  @if (vm.formError()) {
     <div class="alert-banner error-banner" role="alert">
       <div class="alert-content">
         <span class="alert-icon">⚠️</span>
-        <span>{{ vm.formError }}</span>
+        <span>{{ vm.formError() }}</span>
       </div>
       <button
         type="button"
@@ -43,12 +43,12 @@
   }
 
   <!-- حالة التحميل -->
-  @if (vm.isLoading) {
+  @if (vm.isLoading()) {
     <div class="loading-state">
       <div class="spinner"></div>
       <p>جاري تحميل بيانات الملف الشخصي...</p>
     </div>
-  } @else if (vm.profile) {
+  } @else if (vm.profile(); as profile) {
     <!-- بطاقة ملخص معلومات الحساب -->
     <div class="overview-card">
       <div class="overview-header">
@@ -56,8 +56,8 @@
           <span class="avatar-icon">👤</span>
         </div>
         <div class="overview-details">
-          <h3 class="overview-name">{{ vm.profile.fullName }}</h3>
-          <span class="overview-id">معرف المسؤول: #{{ vm.profile.id }}</span>
+          <h3 class="overview-name">{{ profile.fullName }}</h3>
+          <span class="overview-id">معرف المسؤول: #{{ profile.id }}</span>
         </div>
       </div>
 
@@ -65,10 +65,10 @@
         <div class="meta-item">
           <span class="meta-label">الدور:</span>
           <span class="role-badge role-admin">
-            @if (vm.profile.role === 'Admin') {
+            @if (profile.role === 'Admin') {
               مسؤول النظام
             } @else {
-              {{ vm.profile.role }}
+              {{ profile.role }}
             }
           </span>
         </div>
@@ -77,11 +77,11 @@
           <span class="meta-label">حالة الحساب:</span>
           <span
             class="status-badge"
-            [class.status-active]="vm.profile.accountStatus === 'Active'"
-            [class.status-inactive]="vm.profile.accountStatus === 'Inactive'"
+            [class.status-active]="profile.accountStatus === 'Active'"
+            [class.status-inactive]="profile.accountStatus === 'Inactive'"
           >
             <span class="status-dot"></span>
-            @if (vm.profile.accountStatus === 'Active') {
+            @if (profile.accountStatus === 'Active') {
               نشط
             } @else {
               غير نشط
@@ -91,7 +91,7 @@
 
         <div class="meta-item">
           <span class="meta-label">تاريخ الإنشاء:</span>
-          <span class="meta-value date-cell">{{ vm.profile.createdAt }}</span>
+          <span class="meta-value date-cell">{{ profile.createdAt | date: 'yyyy/MM/dd' }}</span>
         </div>
       </div>
     </div>
@@ -156,9 +156,9 @@
             <button
               type="submit"
               class="btn-save"
-              [disabled]="vm.isSavingProfile"
+              [disabled]="vm.isSavingProfile()"
             >
-              @if (vm.isSavingProfile) {
+              @if (vm.isSavingProfile()) {
                 <span class="btn-spinner"></span>
                 <span>جاري الحفظ...</span>
               } @else {
@@ -230,9 +230,9 @@
             <button
               type="submit"
               class="btn-save"
-              [disabled]="vm.isChangingPassword"
+              [disabled]="vm.isChangingPassword()"
             >
-              @if (vm.isChangingPassword) {
+              @if (vm.isChangingPassword()) {
                 <span class="btn-spinner"></span>
                 <span>جاري التغيير...</span>
               } @else {

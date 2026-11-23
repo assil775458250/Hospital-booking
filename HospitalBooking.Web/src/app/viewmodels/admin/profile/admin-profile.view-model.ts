@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { AuthSessionService } from '../../../core/auth/auth-session.service';
 import {
   AdminProfile,
@@ -24,19 +25,19 @@ export class AdminProfileViewModel {
   private readonly adminProfileService = inject(AdminProfileService);
   private readonly authSessionService = inject(AuthSessionService);
 
-  // حالات التحميل والعمليات
-  isLoading = false;
-  isSavingProfile = false;
-  isChangingPassword = false;
+  // حالات التحميل والعمليات كـ Signals لضمان الاستجابة الفورية في وضع Zoneless
+  readonly isLoading = signal<boolean>(false);
+  readonly isSavingProfile = signal<boolean>(false);
+  readonly isChangingPassword = signal<boolean>(false);
 
   // رسائل التنبيه والنجاح
-  formError = '';
-  successMessage = '';
+  readonly formError = signal<string>('');
+  readonly successMessage = signal<string>('');
 
   // بيانات الملف الشخصي
-  profile: AdminProfile | null = null;
+  readonly profile = signal<AdminProfile | null>(null);
 
-  // نماذج الإدخال
+  // نماذج الإدخال المرتبطة بنموذج ثنائي الاتجاه
   profileForm: AdminProfileFormData = this.getEmptyProfileForm();
   passwordForm: PasswordFormData = this.getEmptyPasswordForm();
 
@@ -45,35 +46,36 @@ export class AdminProfileViewModel {
   }
 
   loadProfile(): void {
-    this.isLoading = true;
-    this.formError = '';
+    this.isLoading.set(true);
+    this.formError.set('');
 
     const currentUser = this.authSessionService.getCurrentUser();
     if (!currentUser || !currentUser.id) {
-      this.formError = 'لم يتم العثور على جلسة مستخدم نشطة أو لا يتوفر معرف المسؤول.';
-      this.isLoading = false;
+      this.formError.set('لم يتم العثور على جلسة مستخدم نشطة أو لا يتوفر معرف المسؤول.');
+      this.isLoading.set(false);
       return;
     }
 
     this.adminProfileService.getProfile(currentUser.id).subscribe({
       next: (profile) => {
-        this.profile = profile;
+        this.profile.set(profile);
         this.initializeProfileForm();
-        this.isLoading = false;
+        this.isLoading.set(false);
       },
       error: (err) => {
-        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات الملف الشخصي.');
-        this.isLoading = false;
+        this.formError.set(this.extractErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات الملف الشخصي.'));
+        this.isLoading.set(false);
       },
     });
   }
 
   initializeProfileForm(): void {
-    if (this.profile) {
+    const currentProfile = this.profile();
+    if (currentProfile) {
       this.profileForm = {
-        fullName: this.profile.fullName,
-        email: this.profile.email,
-        phoneNumber: this.profile.phoneNumber,
+        fullName: currentProfile.fullName,
+        email: currentProfile.email,
+        phoneNumber: currentProfile.phoneNumber,
       };
     } else {
       this.profileForm = this.getEmptyProfileForm();
@@ -81,11 +83,12 @@ export class AdminProfileViewModel {
   }
 
   saveProfile(): void {
-    this.formError = '';
-    this.successMessage = '';
+    this.formError.set('');
+    this.successMessage.set('');
 
-    if (!this.profile) {
-      this.formError = 'بيانات الملف الشخصي غير متوفرة.';
+    const currentProfile = this.profile();
+    if (!currentProfile) {
+      this.formError.set('بيانات الملف الشخصي غير متوفرة.');
       return;
     }
 
@@ -94,17 +97,17 @@ export class AdminProfileViewModel {
     const phoneNumber = this.profileForm.phoneNumber.trim();
 
     if (!fullName) {
-      this.formError = 'يرجى إدخال الاسم الكامل.';
+      this.formError.set('يرجى إدخال الاسم الكامل.');
       return;
     }
 
     if (!email) {
-      this.formError = 'يرجى إدخال البريد الإلكتروني.';
+      this.formError.set('يرجى إدخال البريد الإلكتروني.');
       return;
     }
 
     if (!phoneNumber) {
-      this.formError = 'يرجى إدخال رقم الهاتف.';
+      this.formError.set('يرجى إدخال رقم الهاتف.');
       return;
     }
 
@@ -114,27 +117,43 @@ export class AdminProfileViewModel {
       phoneNumber,
     };
 
-    this.isSavingProfile = true;
+    this.isSavingProfile.set(true);
 
-    this.adminProfileService.updateProfile(this.profile.id, request).subscribe({
+    this.adminProfileService.updateProfile(currentProfile.id, request).subscribe({
       next: () => {
-        this.loadProfile();
-        this.isSavingProfile = false;
+        // تحديث كائن الملف الشخصي مباشرة
+        const updated: AdminProfile = {
+          ...currentProfile,
+          fullName,
+          email,
+          phoneNumber,
+        };
+        this.profile.set(updated);
+
+        // مزامنة جلسة المستخدم حتى يظهر الاسم الجديد فوراً في الشريط العلوي
+        this.authSessionService.updateCurrentUser({
+          fullName,
+          email,
+          phoneNumber,
+        });
+
+        this.isSavingProfile.set(false);
         this.triggerSuccess('تم تحديث البيانات الشخصية بنجاح.');
       },
       error: (err) => {
-        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث البيانات الشخصية.');
-        this.isSavingProfile = false;
+        this.formError.set(this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث البيانات الشخصية.'));
+        this.isSavingProfile.set(false);
       },
     });
   }
 
   changePassword(): void {
-    this.formError = '';
-    this.successMessage = '';
+    this.formError.set('');
+    this.successMessage.set('');
 
-    if (!this.profile) {
-      this.formError = 'بيانات الملف الشخصي غير متوفرة.';
+    const currentProfile = this.profile();
+    if (!currentProfile) {
+      this.formError.set('بيانات الملف الشخصي غير متوفرة.');
       return;
     }
 
@@ -143,22 +162,22 @@ export class AdminProfileViewModel {
     const confirmNewPassword = this.passwordForm.confirmNewPassword;
 
     if (!currentPassword || !currentPassword.trim()) {
-      this.formError = 'يرجى إدخال كلمة المرور الحالية.';
+      this.formError.set('يرجى إدخال كلمة المرور الحالية.');
       return;
     }
 
     if (!newPassword || !newPassword.trim()) {
-      this.formError = 'يرجى إدخال كلمة المرور الجديدة.';
+      this.formError.set('يرجى إدخال كلمة المرور الجديدة.');
       return;
     }
 
     if (newPassword.length < 6) {
-      this.formError = 'يجب ألا تقل كلمة المرور الجديدة عن 6 أحرف.';
+      this.formError.set('يجب ألا تقل كلمة المرور الجديدة عن 6 أحرف.');
       return;
     }
 
     if (newPassword !== confirmNewPassword) {
-      this.formError = 'كلمة المرور الجديدة وتأكيدها غير متطابقين.';
+      this.formError.set('كلمة المرور الجديدة وتأكيدها غير متطابقين.');
       return;
     }
 
@@ -167,17 +186,17 @@ export class AdminProfileViewModel {
       newPassword,
     };
 
-    this.isChangingPassword = true;
+    this.isChangingPassword.set(true);
 
-    this.adminProfileService.changePassword(this.profile.id, request).subscribe({
+    this.adminProfileService.changePassword(currentProfile.id, request).subscribe({
       next: () => {
-        this.isChangingPassword = false;
+        this.isChangingPassword.set(false);
         this.resetPasswordForm();
         this.triggerSuccess('تم تغيير كلمة المرور بنجاح.');
       },
       error: (err) => {
-        this.formError = this.extractErrorMessage(err, 'حدث خطأ أثناء تغيير كلمة المرور.');
-        this.isChangingPassword = false;
+        this.formError.set(this.extractErrorMessage(err, 'حدث خطأ أثناء تغيير كلمة المرور.'));
+        this.isChangingPassword.set(false);
       },
     });
   }
@@ -187,15 +206,15 @@ export class AdminProfileViewModel {
   }
 
   dismissSuccessMessage(): void {
-    this.successMessage = '';
+    this.successMessage.set('');
   }
 
   dismissFormError(): void {
-    this.formError = '';
+    this.formError.set('');
   }
 
   private triggerSuccess(msg: string): void {
-    this.successMessage = msg;
+    this.successMessage.set(msg);
   }
 
   private getEmptyProfileForm(): AdminProfileFormData {
@@ -213,13 +232,8 @@ export class AdminProfileViewModel {
       confirmNewPassword: '',
     };
   }
+
   private extractErrorMessage(err: any, fallback: string): string {
-  if (typeof err?.error === 'string' && err.error.trim()) {
-    return err.error.trim();
+    return extractApiErrorMessage(err, fallback);
   }
-  if (err?.error?.message && typeof err.error.message === 'string') {
-    return err.error.message;
-  }
-  return err?.message || fallback;
-}
 }

@@ -19,21 +19,21 @@
   </div>
 
   <!-- تنبيهات النجاح والخطأ العامة -->
-  @if (vm.successMessage) {
+  @if (vm.successMessage()) {
     <div class="alert-banner success-banner" role="alert">
       <div class="alert-content">
         <span class="alert-icon">✅</span>
-        <span>{{ vm.successMessage }}</span>
+        <span>{{ vm.successMessage() }}</span>
       </div>
       <button type="button" class="close-alert-btn" (click)="vm.dismissSuccessMessage()" aria-label="إغلاق التنبيه">✕</button>
     </div>
   }
 
-  @if (vm.formError && !vm.isModalOpen) {
+  @if (vm.formError() && !vm.isModalOpen()) {
     <div class="alert-banner error-banner" role="alert">
       <div class="alert-content">
         <span class="alert-icon">⚠️</span>
-        <span>{{ vm.formError }}</span>
+        <span>{{ vm.formError() }}</span>
       </div>
       <button type="button" class="close-alert-btn" (click)="vm.dismissFormError()" aria-label="إغلاق التنبيه">✕</button>
     </div>
@@ -46,7 +46,7 @@
         <span class="stat-icon">🏥</span>
         <span class="stat-title">إجمالي التخصصات</span>
       </div>
-      <div class="stat-value">{{ vm.totalCount }}</div>
+      <div class="stat-value">{{ vm.totalCount() }}</div>
       <div class="stat-hint">كافة التخصصات الطبية المسجلة</div>
     </div>
 
@@ -55,7 +55,7 @@
         <span class="stat-icon">✅</span>
         <span class="stat-title">التخصصات النشطة</span>
       </div>
-      <div class="stat-value">{{ activeCount }}</div>
+      <div class="stat-value">{{ vm.activeCount() }}</div>
       <div class="stat-hint">تخصصات مفعلة ومتاحة لحجز المواعيد</div>
     </div>
 
@@ -64,7 +64,7 @@
         <span class="stat-icon">⏸️</span>
         <span class="stat-title">التخصصات غير النشطة</span>
       </div>
-      <div class="stat-value">{{ inactiveCount }}</div>
+      <div class="stat-value">{{ vm.inactiveCount() }}</div>
       <div class="stat-hint">تخصصات معطلة وموقوفة مؤقتًا</div>
     </div>
 
@@ -73,7 +73,7 @@
         <span class="stat-icon">👨‍⚕️</span>
         <span class="stat-title">إجمالي الأطباء</span>
       </div>
-      <div class="stat-value">{{ totalDoctorsCount }}</div>
+      <div class="stat-value">{{ vm.totalDoctorsCount() }}</div>
       <div class="stat-hint">أطباء مسجلون في مختلف التخصصات</div>
     </div>
   </div>
@@ -89,8 +89,8 @@
           id="searchSpecialization"
           class="form-control search-input"
           placeholder="ابحث باسم التخصص أو الوصف..."
-          [(ngModel)]="vm.searchTerm"
-          (ngModelChange)="vm.applyFilters()"
+          [ngModel]="vm.searchTerm()"
+          (ngModelChange)="vm.setSearchTerm($event)"
         />
       </div>
     </div>
@@ -100,8 +100,8 @@
       <select
         id="statusFilter"
         class="form-control form-select"
-        [(ngModel)]="vm.selectedStatus"
-        (ngModelChange)="vm.applyFilters()"
+        [ngModel]="vm.selectedStatus()"
+        (ngModelChange)="vm.setSelectedStatus($event)"
       >
         <option value="">كافة الحالات</option>
         <option value="Active">نشط</option>
@@ -109,7 +109,7 @@
       </select>
     </div>
 
-    @if (vm.searchTerm || vm.selectedStatus) {
+    @if (vm.searchTerm() || vm.selectedStatus()) {
       <div class="filter-actions">
         <button type="button" class="reset-btn" (click)="vm.resetFilters()">
           <span>إعادة تعيين</span>
@@ -122,16 +122,16 @@
   <div class="table-card">
     <div class="table-meta">
       <span class="results-count">
-        عدد التخصصات المعروضة: <strong>{{ vm.filteredCount }}</strong> من إجمالي <strong>{{ vm.totalCount }}</strong>
+        عدد التخصصات المعروضة: <strong>{{ vm.filteredCount() }}</strong> من إجمالي <strong>{{ vm.totalCount() }}</strong>
       </span>
     </div>
 
-    @if (vm.isLoading) {
+    @if (vm.isLoading()) {
       <div class="loading-state">
         <div class="spinner"></div>
         <p>جاري تحميل بيانات التخصصات...</p>
       </div>
-    } @else if (vm.filteredSpecializations.length > 0) {
+    } @else if (vm.filteredSpecializations().length > 0) {
       <div class="table-responsive">
         <table class="specializations-table">
           <thead>
@@ -144,7 +144,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (spec of vm.filteredSpecializations; track spec.id) {
+            @for (spec of vm.filteredSpecializations(); track spec.id) {
               <tr>
                 <td class="spec-name">
                   <div class="spec-name-cell">
@@ -213,7 +213,7 @@
         </table>
       </div>
     } @else {
-      @if (vm.totalCount === 0 && !vm.searchTerm && !vm.selectedStatus) {
+      @if (vm.totalCount() === 0 && !vm.searchTerm() && !vm.selectedStatus()) {
         <div class="empty-results">
           <span class="empty-icon">🏥</span>
           <h4>لا توجد تخصصات حتى الآن</h4>
@@ -235,19 +235,19 @@
   </div>
 
   <!-- النافذة المنبثقة لإضافة / تعديل تخصص -->
-  @if (vm.isModalOpen) {
+  @if (vm.isModalOpen()) {
     <div class="modal-backdrop" (click)="vm.closeModal()"></div>
     <div class="modal-dialog" role="dialog" aria-modal="true">
       <div class="modal-header">
         <h3 class="modal-title">
-          {{ vm.isEditMode ? 'تعديل بيانات التخصص' : 'إضافة تخصص جديد' }}
+          {{ vm.isEditMode() ? 'تعديل بيانات التخصص' : 'إضافة تخصص جديد' }}
         </h3>
         <button type="button" class="modal-close-btn" (click)="vm.closeModal()" aria-label="إغلاق">✕</button>
       </div>
 
-      @if (vm.formError) {
+      @if (vm.formError()) {
         <div class="form-error-banner" role="alert">
-          <span>⚠️ {{ vm.formError }}</span>
+          <span>⚠️ {{ vm.formError() }}</span>
         </div>
       }
 
@@ -262,6 +262,7 @@
             placeholder="مثال: القلب والأوعية الدموية"
             [(ngModel)]="vm.specializationForm.name"
             required
+            [disabled]="vm.isSaving()"
           />
         </div>
 
@@ -274,6 +275,7 @@
             class="form-control form-textarea"
             placeholder="اكتب وصفًا موجزًا للخدمات التي يقدمها التخصص..."
             [(ngModel)]="vm.specializationForm.description"
+            [disabled]="vm.isSaving()"
           ></textarea>
         </div>
 
@@ -285,6 +287,7 @@
             class="form-control form-select"
             [(ngModel)]="vm.specializationForm.status"
             required
+            [disabled]="vm.isSaving()"
           >
             <option value="Active">نشط</option>
             <option value="Inactive">غير نشط</option>
@@ -292,9 +295,13 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn-cancel" (click)="vm.closeModal()">إلغاء</button>
-          <button type="submit" class="btn-save">
-            {{ vm.isEditMode ? 'حفظ التعديلات' : 'إضافة التخصص' }}
+          <button type="button" class="btn-cancel" (click)="vm.closeModal()" [disabled]="vm.isSaving()">إلغاء</button>
+          <button type="submit" class="btn-save" [disabled]="vm.isSaving()">
+            @if (vm.isSaving()) {
+              <span>جاري الحفظ...</span>
+            } @else {
+              <span>{{ vm.isEditMode() ? 'حفظ التعديلات' : 'إضافة التخصص' }}</span>
+            }
           </button>
         </div>
       </form>
@@ -302,14 +309,14 @@
   }
 
   <!-- النافذة المنبثقة لعرض الأطباء المرتبطين بالتخصص -->
-  @if (vm.isDoctorsModalOpen) {
+  @if (vm.isDoctorsModalOpen()) {
     <div class="modal-backdrop" (click)="vm.closeDoctorsModal()"></div>
     <div class="modal-dialog modal-dialog-lg" role="dialog" aria-modal="true">
       <div class="modal-header">
         <div class="modal-header-info">
           <h3 class="modal-title">
             الأطباء المرتبطون بتخصص:
-            <span class="highlight-spec">{{ vm.selectedSpecialization?.name }}</span>
+            <span class="highlight-spec">{{ vm.selectedSpecialization()?.name }}</span>
           </h3>
           <p class="modal-subtitle">
             قائمة بجميع الأطباء التابعين لهذا التخصص سواء كانت حساباتهم نشطة أو غير نشطة.
@@ -319,9 +326,14 @@
       </div>
 
       <div class="modal-body">
-        @if (vm.associatedDoctors.length > 0) {
+        @if (vm.isLoadingDoctors()) {
+          <div class="doctors-loading-state">
+            <div class="spinner"></div>
+            <p>جاري تحميل قائمة الأطباء...</p>
+          </div>
+        } @else if (vm.associatedDoctors().length > 0) {
           <div class="associated-doctors-list">
-            @for (doctor of vm.associatedDoctors; track doctor.id) {
+            @for (doctor of vm.associatedDoctors(); track doctor.id) {
               <div class="doctor-item-card">
                 <div class="doctor-avatar">
                   @if (doctor.profileImageUrl) {

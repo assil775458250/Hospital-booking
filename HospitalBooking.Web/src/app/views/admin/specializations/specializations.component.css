@@ -41,9 +41,15 @@
 }
 
 .add-spec-btn:hover,
-.btn-save:hover,
+.btn-save:hover:not(:disabled),
 .reset-link-btn:hover {
   background: var(--secondary-color);
+}
+
+.btn-save:disabled,
+.btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .alert-banner {
@@ -395,12 +401,18 @@ button:focus-visible {
 }
 
 .loading-state p,
+.doctors-loading-state p,
 .empty-results p,
 .empty-associated-state p {
   color: var(--text-muted);
   font-size: 0.9rem;
   max-width: 420px;
   margin: 0 auto 1rem;
+}
+
+.doctors-loading-state {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
 }
 
 .empty-icon,

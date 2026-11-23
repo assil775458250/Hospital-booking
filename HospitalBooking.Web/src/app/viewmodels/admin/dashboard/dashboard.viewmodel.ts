@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { DashboardAppointment } from '../../../models/admin/dashboard/dashboard.model';
 import { DashboardService } from '../../../services/admin/dashboard/dashboard.service';
 
@@ -13,33 +14,29 @@ export interface StatCard {
 export class DashboardViewModel {
   private readonly dashboardService = inject(DashboardService);
 
-  onDataLoaded?: () => void;
+  readonly isLoading = signal(true);
+  readonly errorMessage = signal('');
 
-  isLoading = true;
-  errorMessage = '';
-
-  stats: StatCard[] = [
+  readonly stats = signal<StatCard[]>([
     { title: 'إجمالي الأطباء', value: '—', icon: '👨‍⚕️', hint: 'عدد الأطباء المسجلين' },
     { title: 'إجمالي المرضى', value: '—', icon: '👥', hint: 'عدد المرضى النشطين' },
     { title: 'إجمالي المواعيد', value: '—', icon: '📅', hint: 'كافة المواعيد المحجوزة' },
     { title: 'إجمالي التخصصات', value: '—', icon: '🩺', hint: 'التخصصات الطبية المتوفرة' },
-  ];
+  ]);
 
-  recentAppointments: DashboardAppointment[] = [];
+  readonly recentAppointments = signal<DashboardAppointment[]>([]);
 
   constructor() {
     this.loadDashboardData();
   }
 
   loadDashboardData(): void {
-    console.log('[DashboardViewModel] loadDashboardData START');
-    this.isLoading = true;
-    this.errorMessage = '';
+    this.isLoading.set(true);
+    this.errorMessage.set('');
 
     this.dashboardService.getDashboardData().subscribe({
       next: (data) => {
-        console.log('[DashboardViewModel] next called with data:', data);
-        this.stats = [
+        this.stats.set([
           {
             title: 'إجمالي الأطباء',
             value: data.totalDoctors.toString(),
@@ -64,27 +61,18 @@ export class DashboardViewModel {
             icon: '🩺',
             hint: 'التخصصات الطبية المتوفرة',
           },
-        ];
-        this.recentAppointments = data.recentAppointments;
-        this.isLoading = false;
-        this.onDataLoaded?.();
-        console.log('[DashboardViewModel] stats updated, isLoading is now false');
+        ]);
+        this.recentAppointments.set(data.recentAppointments ?? []);
+        this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('[DashboardViewModel] error called with:', err);
-        this.errorMessage = this.extractErrorMessage(err, 'تعذر تحميل بيانات لوحة التحكم.');
-        this.isLoading = false;
-        this.onDataLoaded?.();
+        this.errorMessage.set(this.extractErrorMessage(err, 'تعذر تحميل بيانات لوحة التحكم.'));
+        this.isLoading.set(false);
       },
     });
   }
+
   private extractErrorMessage(err: any, fallback: string): string {
-  if (typeof err?.error === 'string' && err.error.trim()) {
-    return err.error.trim();
+    return extractApiErrorMessage(err, fallback);
   }
-  if (err?.error?.message && typeof err.error.message === 'string') {
-    return err.error.message;
-  }
-  return err?.message || fallback;
-}
 }

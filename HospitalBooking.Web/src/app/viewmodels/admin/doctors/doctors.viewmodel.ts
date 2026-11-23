@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { extractApiErrorMessage as getApiErrorMessage } from '../../../core/utils/api-error.util';
 import {
   CreateDoctorRequest,
   Doctor,
@@ -29,26 +30,28 @@ export class DoctorsViewModel {
   selectedSpecialization = '';
   selectedStatus: DoctorStatus | '' = '';
 
-  doctors: Doctor[] = [];
-  filteredDoctors: Doctor[] = [];
+  readonly isLoading = signal(true);
+
+  readonly doctors = signal<Doctor[]>([]);
+  readonly filteredDoctors = signal<Doctor[]>([]);
 
   // قائمة التخصصات المحملة ديناميكيًا
   allSpecializations: Specialization[] = [];
-  specializations: string[] = [];
+  readonly specializations = signal<string[]>([]);
 
   // حالة النافذة المنبثقة ورسائل التنبيه
-  isModalOpen = false;
-  isEditMode = false;
+  readonly isModalOpen = signal(false);
+  readonly isEditMode = signal(false);
   editingDoctorId: number | null = null;
-  formError = '';
-  successMessage = '';
+  readonly formError = signal('');
+  readonly successMessage = signal('');
 
   // حالة نافذة تفاصيل الطبيب
-  isDetailsModalOpen = false;
-  isLoadingDetails = false;
-  detailsError = '';
+  readonly isDetailsModalOpen = signal(false);
+  readonly isLoadingDetails = signal(false);
+  readonly detailsError = signal('');
   selectedDoctorIdForDetails: number | null = null;
-  selectedDoctorDetails: DoctorDetails | null = null;
+  readonly selectedDoctorDetails = signal<DoctorDetails | null>(null);
 
   // نموذج المدخلات
   doctorForm: DoctorFormData = this.getEmptyForm();
@@ -62,23 +65,26 @@ export class DoctorsViewModel {
     this.specializationsService.getSpecializations().subscribe({
       next: (specs) => {
         this.allSpecializations = specs;
-        this.specializations = specs.map((s) => s.name);
+        this.specializations.set(specs.map((s) => s.name));
         callback?.();
       },
       error: (err) => {
-        this.formError = this.extractApiErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات التخصصات.');
+        this.formError.set(this.extractApiErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات التخصصات.'));
       },
     });
   }
 
   loadDoctors(): void {
+    this.isLoading.set(true);
     this.doctorsService.getDoctors().subscribe({
       next: (data) => {
-        this.doctors = data;
+        this.doctors.set(data);
         this.applyFilters();
+        this.isLoading.set(false);
       },
       error: (err) => {
-        this.formError = this.extractApiErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات الأطباء.');
+        this.formError.set(this.extractApiErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات الأطباء.'));
+        this.isLoading.set(false);
       },
     });
   }
@@ -86,7 +92,7 @@ export class DoctorsViewModel {
   applyFilters(): void {
     const term = this.searchTerm.trim().toLowerCase();
 
-    this.filteredDoctors = this.doctors.filter((doc) => {
+    const filtered = this.doctors().filter((doc) => {
       const matchesSearch =
         !term ||
         doc.fullName.toLowerCase().includes(term) ||
@@ -103,6 +109,8 @@ export class DoctorsViewModel {
 
       return matchesSearch && matchesSpec && matchesStatus;
     });
+
+    this.filteredDoctors.set(filtered);
   }
 
   resetFilters(): void {
@@ -113,33 +121,33 @@ export class DoctorsViewModel {
   }
 
   openAddModal(): void {
-    this.formError = '';
+    this.formError.set('');
     this.specializationsService.getSpecializations().subscribe({
       next: (specs) => {
         this.allSpecializations = specs;
         const activeSpecs = specs.filter((s) => s.status === 'Active');
 
         if (activeSpecs.length === 0) {
-          this.formError = 'لا توجد تخصصات نشطة متاحة حاليًا لإضافة طبيب جديد.';
-          this.isModalOpen = false;
+          this.formError.set('لا توجد تخصصات نشطة متاحة حاليًا لإضافة طبيب جديد.');
+          this.isModalOpen.set(false);
           return;
         }
 
-        this.specializations = activeSpecs.map((s) => s.name);
+        this.specializations.set(activeSpecs.map((s) => s.name));
         this.doctorForm = this.getEmptyForm();
-        this.isEditMode = false;
+        this.isEditMode.set(false);
         this.editingDoctorId = null;
-        this.isModalOpen = true;
+        this.isModalOpen.set(true);
       },
       error: (err) => {
-        this.formError = this.extractApiErrorMessage(err, 'تعذر تحميل خيارات التخصصات. يرجى المحاولة لاحقًا.');
-        this.isModalOpen = false;
+        this.formError.set(this.extractApiErrorMessage(err, 'تعذر تحميل خيارات التخصصات. يرجى المحاولة لاحقًا.'));
+        this.isModalOpen.set(false);
       },
     });
   }
 
   openEditModal(doctor: Doctor): void {
-    this.formError = '';
+    this.formError.set('');
     this.specializationsService.getSpecializations().subscribe({
       next: (specs) => {
         this.allSpecializations = specs;
@@ -152,7 +160,7 @@ export class DoctorsViewModel {
             s.name === doctor.specializationName
         );
 
-        this.specializations = availableSpecs.map((s) => s.name);
+        this.specializations.set(availableSpecs.map((s) => s.name));
 
         this.doctorForm = {
           fullName: doctor.fullName,
@@ -163,25 +171,25 @@ export class DoctorsViewModel {
           password: '',
           accountStatus: doctor.accountStatus,
         };
-        this.isEditMode = true;
+        this.isEditMode.set(true);
         this.editingDoctorId = doctor.id;
-        this.isModalOpen = true;
+        this.isModalOpen.set(true);
       },
       error: (err) => {
-        this.formError = this.extractApiErrorMessage(err, 'تعذر تحميل بيانات التخصصات.');
-        this.isModalOpen = false;
+        this.formError.set(this.extractApiErrorMessage(err, 'تعذر تحميل بيانات التخصصات.'));
+        this.isModalOpen.set(false);
       },
     });
   }
 
   closeModal(): void {
-    this.isModalOpen = false;
-    this.formError = '';
+    this.isModalOpen.set(false);
+    this.formError.set('');
     this.loadSpecializations();
   }
 
   saveDoctor(): void {
-    this.formError = '';
+    this.formError.set('');
 
     const name = this.doctorForm.fullName.trim();
     const email = this.doctorForm.email.trim();
@@ -190,12 +198,12 @@ export class DoctorsViewModel {
     const pwd = this.doctorForm.password?.trim() || '';
 
     if (!name || !email || !phone || !spec) {
-      this.formError = 'يرجى ملء جميع الحقول المطلوبة (الاسم، البريد، الهاتف، والتخصص).';
+      this.formError.set('يرجى ملء جميع الحقول المطلوبة (الاسم، البريد، الهاتف، والتخصص).');
       return;
     }
 
-    if (!this.isEditMode && !pwd) {
-      this.formError = 'يرجى إدخال كلمة المرور الأولية للطبيب الجديد.';
+    if (!this.isEditMode() && !pwd) {
+      this.formError.set('يرجى إدخال كلمة المرور الأولية للطبيب الجديد.');
       return;
     }
 
@@ -204,14 +212,14 @@ export class DoctorsViewModel {
       this.allSpecializations.find((s) => s.id === this.doctorForm.specializationId);
 
     if (!matchedSpec) {
-      this.formError = 'يرجى اختيار تخصص صحيح من القائمة المتاحة.';
+      this.formError.set('يرجى اختيار تخصص صحيح من القائمة المتاحة.');
       return;
     }
 
     const specializationId = matchedSpec.id;
     this.doctorForm.specializationId = specializationId;
 
-    if (this.isEditMode && this.editingDoctorId !== null) {
+    if (this.isEditMode() && this.editingDoctorId !== null) {
       const request: UpdateDoctorRequest = {
         fullName: name,
         email: email,
@@ -227,7 +235,7 @@ export class DoctorsViewModel {
           this.closeModal();
         },
         error: (err) => {
-          this.formError = this.extractApiErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات الطبيب.');
+          this.formError.set(this.extractApiErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات الطبيب.'));
         },
       });
     } else {
@@ -247,7 +255,7 @@ export class DoctorsViewModel {
           this.closeModal();
         },
         error: (err) => {
-          this.formError = this.extractApiErrorMessage(err, 'حدث خطأ أثناء إضافة الطبيب.');
+          this.formError.set(this.extractApiErrorMessage(err, 'حدث خطأ أثناء إضافة الطبيب.'));
         },
       });
     }
@@ -263,16 +271,16 @@ export class DoctorsViewModel {
         this.loadDoctors();
       },
       error: (err) => {
-        this.formError = this.extractApiErrorMessage(err, 'حدث خطأ أثناء تغيير حالة الحساب.');
+        this.formError.set(this.extractApiErrorMessage(err, 'حدث خطأ أثناء تغيير حالة الحساب.'));
       },
     });
   }
 
   openDetailsModal(doctor: Doctor): void {
-    this.isDetailsModalOpen = true;
+    this.isDetailsModalOpen.set(true);
     this.selectedDoctorIdForDetails = doctor.id;
-    this.selectedDoctorDetails = null;
-    this.detailsError = '';
+    this.selectedDoctorDetails.set(null);
+    this.detailsError.set('');
     this.fetchDoctorDetails(doctor.id);
   }
 
@@ -283,35 +291,35 @@ export class DoctorsViewModel {
   }
 
   closeDetailsModal(): void {
-    this.isDetailsModalOpen = false;
-    this.isLoadingDetails = false;
-    this.detailsError = '';
+    this.isDetailsModalOpen.set(false);
+    this.isLoadingDetails.set(false);
+    this.detailsError.set('');
     this.selectedDoctorIdForDetails = null;
-    this.selectedDoctorDetails = null;
+    this.selectedDoctorDetails.set(null);
   }
 
   private fetchDoctorDetails(doctorId: number): void {
-    this.isLoadingDetails = true;
-    this.detailsError = '';
-    this.selectedDoctorDetails = null;
+    this.isLoadingDetails.set(true);
+    this.detailsError.set('');
+    this.selectedDoctorDetails.set(null);
 
     this.doctorsService.getDoctorById(doctorId).subscribe({
       next: (details) => {
-        if (!this.isDetailsModalOpen || this.selectedDoctorIdForDetails !== doctorId) {
+        if (!this.isDetailsModalOpen() || this.selectedDoctorIdForDetails !== doctorId) {
           return;
         }
-        this.selectedDoctorDetails = details;
-        this.isLoadingDetails = false;
+        this.selectedDoctorDetails.set(details);
+        this.isLoadingDetails.set(false);
       },
       error: (err) => {
-        if (!this.isDetailsModalOpen || this.selectedDoctorIdForDetails !== doctorId) {
+        if (!this.isDetailsModalOpen() || this.selectedDoctorIdForDetails !== doctorId) {
           return;
         }
-        this.detailsError = this.extractApiErrorMessage(
+        this.detailsError.set(this.extractApiErrorMessage(
           err,
           'تعذر تحميل تفاصيل الطبيب ومواعيد العمل.'
-        );
-        this.isLoadingDetails = false;
+        ));
+        this.isLoadingDetails.set(false);
       },
     });
   }
@@ -417,42 +425,19 @@ export class DoctorsViewModel {
   }
 
   private extractApiErrorMessage(err: unknown, fallback: string): string {
-    const httpErr = err as {
-      status?: number;
-      error?: { message?: string; title?: string } | string;
-      message?: string;
-    };
-
-    if (typeof httpErr?.error === 'string' && httpErr.error.trim()) {
-      return httpErr.error.trim();
-    }
-    if (httpErr?.error && typeof httpErr.error === 'object') {
-      if (httpErr.error.message) {
-        return httpErr.error.message;
-      }
-      if (httpErr.error.title) {
-        return httpErr.error.title;
-      }
-    }
-    if (httpErr?.status === 0) {
-      return 'تعذر الاتصال بالخادم. يرجى التأكد من تشغيل الخادم والمحاولة مرة أخرى.';
-    }
-    if (httpErr?.status === 404) {
-      return 'لم يتم العثور على بيانات الطبيب المطلوب.';
-    }
-    return httpErr?.message || fallback;
+    return getApiErrorMessage(err, fallback);
   }
 
   dismissSuccessMessage(): void {
-    this.successMessage = '';
+    this.successMessage.set('');
   }
 
   private triggerSuccess(msg: string): void {
-    this.successMessage = msg;
+    this.successMessage.set(msg);
   }
 
   private getEmptyForm(): DoctorFormData {
-    const defaultSpec = this.specializations[0] || '';
+    const defaultSpec = this.specializations()[0] || '';
     const defaultSpecObj = this.allSpecializations.find((s) => s.name === defaultSpec);
 
     return {
@@ -467,11 +452,11 @@ export class DoctorsViewModel {
   }
 
   get totalCount(): number {
-    return this.doctors.length;
+    return this.doctors().length;
   }
 
   get filteredCount(): number {
-    return this.filteredDoctors.length;
+    return this.filteredDoctors().length;
   }
 
   getInitials(name: string): string {

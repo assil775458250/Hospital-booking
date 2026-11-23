@@ -1,27 +1,34 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { SlicePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { AuthSessionService } from '../../../core/auth/auth-session.service';
 import { DashboardViewModel } from '../../../viewmodels/admin/dashboard/dashboard.viewmodel';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
+  imports: [SlicePipe, RouterLink],
   providers: [DashboardViewModel],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent {
   private readonly sessionService = inject(AuthSessionService);
-  private readonly cdr = inject(ChangeDetectorRef);
   readonly currentUser = this.sessionService.getCurrentUser();
   readonly vm = inject(DashboardViewModel);
 
-  get stats() {
-    return this.vm.stats;
-  }
-
-  ngOnInit(): void {
-    this.vm.onDataLoaded = () => {
-      this.cdr.detectChanges();
-    };
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'Pending':
+        return 'قيد الانتظار';
+      case 'Approved':
+        return 'تمت الموافقة';
+      case 'Rejected':
+        return 'مرفوض';
+      case 'Cancelled':
+        return 'ملغي';
+      default:
+        return status;
+    }
   }
 }

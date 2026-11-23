@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { extractApiErrorMessage } from '../../../core/utils/api-error.util';
 import { AuthSessionService } from '../../../core/auth/auth-session.service';
 import {
   UpdateUserRequest,
@@ -68,7 +69,7 @@ export class UsersViewModel {
         this.onDataLoaded?.();
       },
       error: (err) => {
-        this.formError = err.error?.message ||err.error?.title || 'حدث خطأ أثناء تحميل بيانات المستخدمين.';
+        this.formError = extractApiErrorMessage(err, 'حدث خطأ أثناء تحميل بيانات المستخدمين.');
         this.isLoading = false;
         this.onDataLoaded?.();
       },
@@ -159,7 +160,7 @@ export class UsersViewModel {
         this.closeModal();
       },
       error: (err) => {
-        this.formError = err.error?.message || err.error?.title || 'حدث خطأ أثناء تحديث بيانات المستخدم.';
+        this.formError = extractApiErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات المستخدم.');
       },
     });
   }
@@ -188,7 +189,7 @@ export class UsersViewModel {
         this.loadUsers();
       },
       error: (err) => {
-        this.formError = err.error?.message || err.error?.title || 'حدث خطأ أثناء تغيير دور المستخدم.';
+        this.formError = extractApiErrorMessage(err, 'حدث خطأ أثناء تغيير دور المستخدم.');
       },
     });
   }
@@ -223,7 +224,7 @@ export class UsersViewModel {
         this.loadUsers();
       },
       error: (err) => {
-        this.formError = err.error?.message || err.error?.title || 'حدث خطأ أثناء تحديث حالة حساب المستخدم.';
+        this.formError = extractApiErrorMessage(err, 'حدث خطأ أثناء تحديث حالة حساب المستخدم.');
       },
     });
   }

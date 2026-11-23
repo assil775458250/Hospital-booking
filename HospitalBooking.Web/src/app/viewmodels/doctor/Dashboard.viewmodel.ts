@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { extractApiErrorMessage } from '../../core/utils/api-error.util';
 import { AuthSessionService } from '../../core/auth/auth-session.service';
 import {
   Appointment,
@@ -134,7 +135,7 @@ export class DashboardViewModel {
         this.isLoading = false;
       },
       error: (err) => {
-        this.formError = err?.error?.message || 'تعذر تحميل قائمة الحجوزات.';
+        this.formError = extractApiErrorMessage(err, 'تعذر تحميل قائمة الحجوزات.');
         this.isLoading = false;
       }
     });
@@ -183,7 +184,7 @@ export class DashboardViewModel {
         this.successMessage = 'تم تحديث حالة الحجز بنجاح.';
       },
       error: (err) => {
-        this.formError = err?.error?.message || 'فشل تحديث حالة الحجز.';
+        this.formError = extractApiErrorMessage(err, 'فشل تحديث حالة الحجز.');
       }
     });
   }
@@ -269,7 +270,7 @@ export class DashboardViewModel {
       },
       error: (err) => {
         this.isLoading = false;
-        this.formError = err?.error?.message || 'تعذر إضافة الفترة المتاحة.';
+        this.formError = extractApiErrorMessage(err, 'تعذر إضافة الفترة المتاحة.');
       }
     });
   }
@@ -289,7 +290,7 @@ export class DashboardViewModel {
         this.successMessage = 'تم إيقاف الفترة المتاحة بنجاح.';
       },
       error: (err) => {
-        this.formError = err?.error?.message || 'تعذر إيقاف الفترة المتاحة.';
+        this.formError = extractApiErrorMessage(err, 'تعذر إيقاف الفترة المتاحة.');
       }
     });
   }
@@ -322,7 +323,7 @@ export class DashboardViewModel {
         this.successMessage = 'تم تفعيل الفترة المتاحة بنجاح.';
       },
       error: (err) => {
-        this.formError = err?.error?.message || 'تعذر تفعيل الفترة المتاحة.';
+        this.formError = extractApiErrorMessage(err, 'تعذر تفعيل الفترة المتاحة.');
       }
     });
   }
@@ -437,7 +438,7 @@ export class DashboardViewModel {
         this.successMessage = 'تم تحديث بيانات الملف الشخصي بنجاح.';
       },
       error: (err) => {
-        this.formError = err?.error?.message || 'فشل تحديث بيانات الملف الشخصي.';
+        this.formError = extractApiErrorMessage(err, 'فشل تحديث بيانات الملف الشخصي.');
       }
     });
   }
