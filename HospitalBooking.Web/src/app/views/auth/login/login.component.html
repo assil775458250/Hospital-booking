@@ -6,10 +6,10 @@
       <p class="login-subtitle">نظام يُسر لإدارة حجز المواعيد الطبية</p>
     </div>
 
-    @if (vm.errorMessage) {
+    @if (vm.errorMessage()) {
       <div class="error-banner" role="alert">
         <span class="error-icon">⚠️</span>
-        <span class="error-text">{{ vm.errorMessage }}</span>
+        <span class="error-text">{{ vm.errorMessage() }}</span>
       </div>
     }
 
@@ -23,7 +23,7 @@
           class="form-input"
           placeholder="example@mail.com أو 05xxxxxxxx"
           [(ngModel)]="vm.emailOrPhone"
-          [disabled]="vm.isLoading"
+          [disabled]="vm.isLoading()"
           required
           autocomplete="username"
         />
@@ -38,14 +38,14 @@
           class="form-input"
           placeholder="أدخل كلمة المرور"
           [(ngModel)]="vm.password"
-          [disabled]="vm.isLoading"
+          [disabled]="vm.isLoading()"
           required
           autocomplete="current-password"
         />
       </div>
 
-      <button type="submit" class="submit-btn" [disabled]="vm.isLoading">
-        @if (vm.isLoading) {
+      <button type="submit" class="submit-btn" [disabled]="vm.isLoading()">
+        @if (vm.isLoading()) {
           <span class="spinner"></span>
           <span>جاري التحقق...</span>
         } @else {

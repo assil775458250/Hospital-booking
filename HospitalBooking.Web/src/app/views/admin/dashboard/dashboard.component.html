@@ -9,7 +9,7 @@
 
   <!-- بطاقات الإحصائيات الأربع -->
   <div class="stats-grid">
-    @for (stat of stats; track stat.title) {
+    @for (stat of vm.stats(); track stat.title) {
       <div class="stat-card">
         <div class="stat-header">
           <span class="stat-icon">{{ stat.icon }}</span>
@@ -28,31 +28,79 @@
         <span class="section-icon">📋</span>
         <h3 class="section-title">أحدث المواعيد</h3>
       </div>
+      <a routerLink="/admin/appointments" class="view-all-link">عرض كافة المواعيد ←</a>
     </div>
 
-    @if (vm.isLoading) {
+    @if (vm.isLoading()) {
       <div class="empty-state">
         <div class="empty-icon">⏳</div>
         <p class="empty-title">جاري تحميل البيانات...</p>
         <p class="empty-desc">يرجى الانتظار لحظات ريثما يتم جلب أحدث المؤشرات والمواعيد.</p>
       </div>
-    } @else if (vm.errorMessage) {
+    } @else if (vm.errorMessage()) {
       <div class="empty-state">
         <div class="empty-icon">⚠️</div>
         <p class="empty-title">حدث خطأ أثناء تحميل البيانات</p>
-        <p class="empty-desc">{{ vm.errorMessage }}</p>
+        <p class="empty-desc">{{ vm.errorMessage() }}</p>
       </div>
-    } @else if (vm.recentAppointments.length === 0) {
+    } @else if (vm.recentAppointments().length === 0) {
       <div class="empty-state">
-        <div class="empty-icon">⏳</div>
-        <p class="empty-title">لا توجد بيانات مواعيد معروضة حالياً</p>
-        <p class="empty-desc">ستظهر بيانات المواعيد المسجلة هنا تلقائياً بعد ربط الـ Backend وجلب البيانات الفعلية.</p>
+        <div class="empty-icon">📋</div>
+        <p class="empty-title">لا توجد مواعيد مسجلة حالياً</p>
+        <p class="empty-desc">لم يتم تسجيل أي مواعيد في النظام حتى الآن. ستظهر أحدث المواعيد هنا تلقائياً عند حجزها.</p>
       </div>
     } @else {
-      <div class="empty-state">
-        <div class="empty-icon">✅</div>
-        <p class="empty-title">تم تحميل المواعيد بنجاح</p>
-        <p class="empty-desc">تم جلب بيانات المواعيد بنجاح وسيتم عرض تفاصيلها عند تجهيز جدول المواعيد.</p>
+      <div class="table-responsive">
+        <table class="recent-table">
+          <thead>
+            <tr>
+              <th>رقم الموعد</th>
+              <th>المريض</th>
+              <th>الطبيب</th>
+              <th>العيادة / التخصص</th>
+              <th>تاريخ الموعد</th>
+              <th class="th-time">الوقت</th>
+              <th class="th-status">الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (apt of vm.recentAppointments(); track apt.id) {
+              <tr>
+                <td>
+                  <span class="apt-badge">{{ apt.appointmentNumber }}</span>
+                </td>
+                <td>
+                  <div class="patient-cell">
+                    <strong class="patient-name">{{ apt.patientName || '—' }}</strong>
+                    @if (apt.patientPhone) {
+                      <span class="patient-phone ltr-text">{{ apt.patientPhone }}</span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <strong class="doctor-name">{{ apt.doctorName || '—' }}</strong>
+                </td>
+                <td>
+                  <span class="spec-tag">{{ apt.specializationName || apt.clinic || '—' }}</span>
+                </td>
+                <td>{{ apt.appointmentDate | slice:0:10 }}</td>
+                <td class="td-time">{{ apt.startTime || '—' }}</td>
+                <td class="td-status">
+                  <span
+                    class="status-badge"
+                    [class.status-pending]="apt.status === 'Pending'"
+                    [class.status-approved]="apt.status === 'Approved'"
+                    [class.status-rejected]="apt.status === 'Rejected'"
+                    [class.status-cancelled]="apt.status === 'Cancelled'"
+                  >
+                    <span class="status-dot"></span>
+                    {{ getStatusLabel(apt.status) }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
     }
   </div>

@@ -22,33 +22,22 @@ namespace HospitalBooking.API.Services.Admin
             var totalDoctors = await _context.Doctors.CountAsync();
             var totalPatients = await _context.Users.CountAsync(u => u.Role == UserRole.Patient);
             var totalSpecializations = await _context.Clinics.CountAsync();
-            var totalAppointments = await _context.Bookings.CountAsync();
 
-            var upcomingAppointments = await _context.Bookings
-                .Include(b => b.AppointmentSlot)
-                .CountAsync(b => b.AppointmentSlot != null && b.AppointmentSlot.StartDateTime >= now && b.Status != BookingStatus.Cancelled);
-
-            var pendingAppointments = await _context.Bookings
-                .CountAsync(b => b.Status == BookingStatus.Pending);
-
-            var confirmedAppointments = await _context.Bookings
-                .CountAsync(b => b.Status == BookingStatus.Approved);
-
-            var completedAppointments = await _context.Bookings
-                .Include(b => b.AppointmentSlot)
-                .CountAsync(b => b.Status == BookingStatus.Approved && b.AppointmentSlot != null && b.AppointmentSlot.EndDateTime < now);
-
-            var cancelledAppointments = await _context.Bookings
-                .CountAsync(b => b.Status == BookingStatus.Cancelled);
+            var bookingStats = await _context.Bookings
+                .GroupBy(_ => 1)
+                .Select(g => new
+                {
+                    Total = g.Count(),
+                    Upcoming = g.Count(b => b.AppointmentSlot != null && b.AppointmentSlot.StartDateTime >= now && b.Status != BookingStatus.Cancelled),
+                    Pending = g.Count(b => b.Status == BookingStatus.Pending),
+                    Confirmed = g.Count(b => b.Status == BookingStatus.Approved),
+                    Completed = g.Count(b => b.Status == BookingStatus.Approved && b.AppointmentSlot != null && b.AppointmentSlot.EndDateTime < now),
+                    Cancelled = g.Count(b => b.Status == BookingStatus.Cancelled)
+                })
+                .FirstOrDefaultAsync();
 
             var recent = await _context.Bookings
-                .Include(b => b.Patient)
-                .Include(b => b.AppointmentSlot)
-                    .ThenInclude(s => s.Doctor)
-                        .ThenInclude(d => d.User)
-                .Include(b => b.AppointmentSlot)
-                    .ThenInclude(s => s.Doctor)
-                        .ThenInclude(d => d.Clinic)
+                .AsNoTracking()
                 .OrderByDescending(b => b.CreatedAt)
                 .Take(10)
                 .Select(b => new AppointmentDto
@@ -78,12 +67,12 @@ namespace HospitalBooking.API.Services.Admin
                 TotalDoctors = totalDoctors,
                 TotalPatients = totalPatients,
                 TotalSpecializations = totalSpecializations,
-                TotalAppointments = totalAppointments,
-                UpcomingAppointments = upcomingAppointments,
-                PendingAppointments = pendingAppointments,
-                ConfirmedAppointments = confirmedAppointments,
-                CompletedAppointments = completedAppointments,
-                CancelledAppointments = cancelledAppointments,
+                TotalAppointments = bookingStats?.Total ?? 0,
+                UpcomingAppointments = bookingStats?.Upcoming ?? 0,
+                PendingAppointments = bookingStats?.Pending ?? 0,
+                ConfirmedAppointments = bookingStats?.Confirmed ?? 0,
+                CompletedAppointments = bookingStats?.Completed ?? 0,
+                CancelledAppointments = bookingStats?.Cancelled ?? 0,
                 RecentAppointments = recent
             };
 

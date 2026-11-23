@@ -119,6 +119,136 @@
   font-weight: 700;
 }
 
+.view-all-link {
+  color: var(--primary-color);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.view-all-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+/* جدول أحدث المواعيد */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.recent-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+  font-size: 0.88rem;
+}
+
+.recent-table th {
+  background: #f8fafc;
+  color: var(--primary-color);
+  font-weight: 700;
+  padding: 0.85rem 1rem;
+  border-bottom: 1.5px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.recent-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.recent-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.apt-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  background: #f1f5f9;
+  color: var(--primary-color);
+  border-radius: 6px;
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.patient-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.patient-name,
+.doctor-name {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.patient-phone {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.spec-tag {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  background: #f0fdfa;
+  color: #0f766e;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.ltr-text {
+  direction: ltr;
+  text-align: right;
+  font-family: monospace;
+}
+
+.th-time,
+.td-time,
+.th-status,
+.td-status {
+  text-align: center;
+}
+
+.td-time {
+  direction: ltr;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+/* شارات الحالة */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-pending .status-dot { background: #f59e0b; }
+.status-approved { background: #ecfdf5; color: #065f46; }
+.status-approved .status-dot { background: #10b981; }
+.status-rejected { background: #fef2f2; color: #991b1b; }
+.status-rejected .status-dot { background: #ef4444; }
+.status-cancelled { background: #f1f5f9; color: #475569; }
+.status-cancelled .status-dot { background: #94a3b8; }
+
+/* الحالة الفارغة */
 .empty-state {
   text-align: center;
   padding: 3rem 1.5rem;
