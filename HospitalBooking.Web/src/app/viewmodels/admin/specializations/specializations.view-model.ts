@@ -20,27 +20,38 @@ export class SpecializationsViewModel {
   private readonly specializationsService = inject(SpecializationsService);
   private readonly doctorsService = inject(DoctorsService);
 
-  // مؤقت الإغلاق التلقائي لرسالة النجاح
-  private successDismissTimer: ReturnType<typeof setTimeout> | null = null;
+  // حالات التحميل والعمليات
+  readonly isLoading = signal(true);
+  readonly isSaving = signal(false);
+  readonly formError = signal('');
+  readonly successMessage = signal('');
 
-  // حالات التحميل والرسائل التفاعلية (Signals)
-  readonly isLoading = signal<boolean>(true);
-  readonly formError = signal<string>('');
-  readonly successMessage = signal<string>('');
-
-  // فلاتر البحث والتصفية التفاعلية
-  readonly searchTerm = signal<string>('');
+  // فلاتر البحث والتصفية
+  readonly searchTerm = signal('');
   readonly selectedStatus = signal<SpecializationStatus | ''>('');
 
   // بيانات التخصصات
   readonly specializations = signal<Specialization[]>([]);
 
+  // حالة نافذة إضافة / تعديل تخصص
+  readonly isModalOpen = signal(false);
+  readonly isEditMode = signal(false);
+  editingSpecializationId: number | null = null;
+  specializationForm: SpecializationFormData = this.getEmptyForm();
+
+  // حالة نافذة عرض الأطباء المرتبطين بالتخصص
+  readonly isDoctorsModalOpen = signal(false);
+  readonly isLoadingDoctors = signal(false);
+  readonly selectedSpecialization = signal<Specialization | null>(null);
+  readonly associatedDoctors = signal<Doctor[]>([]);
+
   // الحسابات والإحصائيات التفاعلية (Computed Signals)
   readonly filteredSpecializations = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const status = this.selectedStatus();
+    const list = this.specializations();
 
-    return this.specializations().filter((spec) => {
+    return list.filter((spec) => {
       const matchesSearch =
         !term ||
         spec.name.toLowerCase().includes(term) ||
@@ -54,30 +65,15 @@ export class SpecializationsViewModel {
 
   readonly totalCount = computed(() => this.specializations().length);
   readonly filteredCount = computed(() => this.filteredSpecializations().length);
-
   readonly activeCount = computed(
     () => this.specializations().filter((s) => s.status === 'Active').length
   );
-
   readonly inactiveCount = computed(
     () => this.specializations().filter((s) => s.status === 'Inactive').length
   );
-
-  readonly totalDoctorsCount = computed(
-    () => this.specializations().reduce((sum, s) => sum + (s.doctorsCount || 0), 0)
+  readonly totalDoctorsCount = computed(() =>
+    this.specializations().reduce((sum, s) => sum + (s.doctorsCount || 0), 0)
   );
-
-  // حالة نافذة إضافة / تعديل تخصص
-  readonly isModalOpen = signal<boolean>(false);
-  readonly isEditMode = signal<boolean>(false);
-  editingSpecializationId: number | null = null;
-  specializationForm: SpecializationFormData = this.getEmptyForm();
-
-  // حالة نافذة عرض الأطباء المرتبطين بالتخصص
-  readonly isDoctorsModalOpen = signal<boolean>(false);
-  readonly isLoadingDoctors = signal<boolean>(false);
-  readonly selectedSpecialization = signal<Specialization | null>(null);
-  readonly associatedDoctors = signal<Doctor[]>([]);
 
   constructor() {
     this.loadSpecializations();
@@ -89,7 +85,7 @@ export class SpecializationsViewModel {
 
     this.specializationsService.getSpecializations().subscribe({
       next: (data) => {
-        this.specializations.set(Array.isArray(data) ? data : []);
+        this.specializations.set(data || []);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -99,6 +95,14 @@ export class SpecializationsViewModel {
         this.isLoading.set(false);
       },
     });
+  }
+
+  setSearchTerm(term: string): void {
+    this.searchTerm.set(term);
+  }
+
+  setSelectedStatus(status: SpecializationStatus | ''): void {
+    this.selectedStatus.set(status);
   }
 
   resetFilters(): void {
@@ -128,6 +132,7 @@ export class SpecializationsViewModel {
 
   closeModal(): void {
     this.isModalOpen.set(false);
+    this.isSaving.set(false);
     this.formError.set('');
     this.editingSpecializationId = null;
   }
@@ -143,6 +148,8 @@ export class SpecializationsViewModel {
       this.formError.set('يرجى إدخال اسم التخصص.');
       return;
     }
+
+    this.isSaving.set(true);
 
     if (this.isEditMode() && this.editingSpecializationId !== null) {
       const request: UpdateSpecializationRequest = {
@@ -161,6 +168,7 @@ export class SpecializationsViewModel {
             this.closeModal();
           },
           error: (err) => {
+            this.isSaving.set(false);
             this.formError.set(
               this.extractErrorMessage(err, 'حدث خطأ أثناء تحديث بيانات التخصص.')
             );
@@ -174,13 +182,14 @@ export class SpecializationsViewModel {
       };
 
       this.specializationsService.createSpecialization(request).subscribe({
-        next: (newSpec) => {
-          const specName = (newSpec as any)?.name || name;
+        next: (newSpec: any) => {
+          const specName = newSpec?.name || name;
           this.triggerSuccess(`تمت إضافة التخصص (${specName}) بنجاح.`);
           this.loadSpecializations();
           this.closeModal();
         },
         error: (err) => {
+          this.isSaving.set(false);
           this.formError.set(
             this.extractErrorMessage(err, 'حدث خطأ أثناء إضافة التخصص.')
           );
@@ -224,13 +233,10 @@ export class SpecializationsViewModel {
     this.isLoadingDoctors.set(true);
     this.isDoctorsModalOpen.set(true);
 
-    this.doctorsService.getDoctors().subscribe({
+    this.doctorsService.getDoctors(specialization.id).subscribe({
       next: (docs) => {
-        const filtered = (Array.isArray(docs) ? docs : []).filter(
-          (doc) => doc.specializationId === specialization.id
-        );
         if (this.selectedSpecialization()?.id === specialization.id) {
-          this.associatedDoctors.set(filtered);
+          this.associatedDoctors.set(docs || []);
         }
         this.isLoadingDoctors.set(false);
       },
@@ -251,10 +257,6 @@ export class SpecializationsViewModel {
   }
 
   dismissSuccessMessage(): void {
-    if (this.successDismissTimer) {
-      clearTimeout(this.successDismissTimer);
-      this.successDismissTimer = null;
-    }
     this.successMessage.set('');
   }
 
@@ -263,11 +265,7 @@ export class SpecializationsViewModel {
   }
 
   private triggerSuccess(msg: string): void {
-    this.dismissSuccessMessage();
     this.successMessage.set(msg);
-    this.successDismissTimer = setTimeout(() => {
-      this.successMessage.set('');
-    }, 4000);
   }
 
   private getEmptyForm(): SpecializationFormData {
@@ -279,13 +277,13 @@ export class SpecializationsViewModel {
   }
 
   getSpecializationInitial(name: string): string {
-    const trimmed = (name || '').trim();
+    const trimmed = name.trim();
     const cleanName = trimmed.replace(/^ال/, '').trim();
     return (cleanName || trimmed).charAt(0);
   }
 
   getDoctorInitials(name: string): string {
-    const cleanName = (name || '').replace(/^د\.\s*/, '').trim();
+    const cleanName = name.replace(/^د\.\s*/, '').trim();
     return cleanName.charAt(0) || 'ط';
   }
 

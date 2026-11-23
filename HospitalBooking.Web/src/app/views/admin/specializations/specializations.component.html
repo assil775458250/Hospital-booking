@@ -90,7 +90,7 @@
           class="form-control search-input"
           placeholder="ابحث باسم التخصص أو الوصف..."
           [ngModel]="vm.searchTerm()"
-          (ngModelChange)="vm.searchTerm.set($event)"
+          (ngModelChange)="vm.setSearchTerm($event)"
         />
       </div>
     </div>
@@ -101,7 +101,7 @@
         id="statusFilter"
         class="form-control form-select"
         [ngModel]="vm.selectedStatus()"
-        (ngModelChange)="vm.selectedStatus.set($event)"
+        (ngModelChange)="vm.setSelectedStatus($event)"
       >
         <option value="">كافة الحالات</option>
         <option value="Active">نشط</option>
@@ -262,6 +262,7 @@
             placeholder="مثال: القلب والأوعية الدموية"
             [(ngModel)]="vm.specializationForm.name"
             required
+            [disabled]="vm.isSaving()"
           />
         </div>
 
@@ -274,6 +275,7 @@
             class="form-control form-textarea"
             placeholder="اكتب وصفًا موجزًا للخدمات التي يقدمها التخصص..."
             [(ngModel)]="vm.specializationForm.description"
+            [disabled]="vm.isSaving()"
           ></textarea>
         </div>
 
@@ -285,6 +287,7 @@
             class="form-control form-select"
             [(ngModel)]="vm.specializationForm.status"
             required
+            [disabled]="vm.isSaving()"
           >
             <option value="Active">نشط</option>
             <option value="Inactive">غير نشط</option>
@@ -292,9 +295,13 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn-cancel" (click)="vm.closeModal()">إلغاء</button>
-          <button type="submit" class="btn-save">
-            {{ vm.isEditMode() ? 'حفظ التعديلات' : 'إضافة التخصص' }}
+          <button type="button" class="btn-cancel" (click)="vm.closeModal()" [disabled]="vm.isSaving()">إلغاء</button>
+          <button type="submit" class="btn-save" [disabled]="vm.isSaving()">
+            @if (vm.isSaving()) {
+              <span>جاري الحفظ...</span>
+            } @else {
+              <span>{{ vm.isEditMode() ? 'حفظ التعديلات' : 'إضافة التخصص' }}</span>
+            }
           </button>
         </div>
       </form>
@@ -320,9 +327,9 @@
 
       <div class="modal-body">
         @if (vm.isLoadingDoctors()) {
-          <div class="loading-state">
+          <div class="doctors-loading-state">
             <div class="spinner"></div>
-            <p>جاري تحميل قائمة الأطباء المرتبطين...</p>
+            <p>جاري تحميل قائمة الأطباء...</p>
           </div>
         } @else if (vm.associatedDoctors().length > 0) {
           <div class="associated-doctors-list">

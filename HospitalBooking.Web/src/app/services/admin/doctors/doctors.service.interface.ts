@@ -9,7 +9,7 @@ import {
 } from '../../../models/admin/doctors/doctor.model';
 
 export interface IDoctorsService {
-  getDoctors(): Observable<Doctor[]>;
+  getDoctors(specializationId?: number): Observable<Doctor[]>;
   getDoctorById(id: number): Observable<DoctorDetails>;
   getDoctorSlots(doctorId: number): Observable<DoctorScheduleSlot[]>;
   createDoctor(data: CreateDoctorRequest): Observable<void>;

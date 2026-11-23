@@ -19,8 +19,9 @@ export class DoctorsService implements IDoctorsService {
   private readonly http = inject(HttpClient);
 
 
-  getDoctors(): Observable<Doctor[]> {
-    return this.http.get<Doctor[]>(`${API_BASE_URL}/api/admin/doctors`);
+  getDoctors(specializationId?: number): Observable<Doctor[]> {
+    const query = specializationId ? `?specializationId=${specializationId}` : '';
+    return this.http.get<Doctor[]>(`${API_BASE_URL}/api/admin/doctors${query}`);
   }
 
   createDoctor(data: CreateDoctorRequest): Observable<void> {
