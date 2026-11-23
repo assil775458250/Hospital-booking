@@ -149,6 +149,33 @@
   }
 }
 
+.patient-banner-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.9rem;
+}
+
+.patient-note-text {
+  color: var(--text-muted);
+}
+
+.patient-link {
+  color: var(--secondary-color);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s, text-decoration 0.2s;
+}
+
+.patient-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
 @media (max-width: 480px) {
   .login-card {
     padding: 2rem 1.25rem;

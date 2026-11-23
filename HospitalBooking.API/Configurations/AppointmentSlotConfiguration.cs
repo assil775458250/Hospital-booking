@@ -15,8 +15,8 @@ namespace HospitalBooking.API.Configurations
             builder.Property(a => a.DoctorId).IsRequired();
             builder.Property(a => a.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").IsRequired();
             builder.Property(a => a.IsCancelled).HasDefaultValue(false).IsRequired();
-            builder.Property(a => a.StartDateTime).HasColumnType("TIMESTAMPTZ").IsRequired();
-            builder.Property(a => a.EndDateTime).HasColumnType("TIMESTAMPTZ").IsRequired();
+            builder.Property(a => a.StartDateTime).HasColumnType("timestamp with time zone").IsRequired();
+            builder.Property(a => a.EndDateTime).HasColumnType("timestamp with time zone").IsRequired();
             builder.HasOne(a => a.Doctor).WithMany(d => d.AppointmentSlots).HasForeignKey(a => a.DoctorId).OnDelete(DeleteBehavior.Restrict);
             builder.HasMany(a => a.Bookings).WithOne(b => b.AppointmentSlot).HasForeignKey(b => b.SlotId).OnDelete(DeleteBehavior.Restrict);
         }
