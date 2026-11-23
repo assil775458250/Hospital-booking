@@ -6,7 +6,7 @@ COPY . .
 RUN dotnet restore "HospitalBooking.API.csproj"
 RUN dotnet publish "HospitalBooking.API.csproj" -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
 COPY --from=build /app/publish .
@@ -17,4 +17,5 @@ EXPOSE 10000
 
 
 ENTRYPOINT ["dotnet", "HospitalBooking.API.dll"]
+
 
