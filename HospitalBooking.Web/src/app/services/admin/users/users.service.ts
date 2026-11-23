@@ -7,7 +7,7 @@ import {
   UpdateUserStatusRequest,
   User,
   UserFilters
-} from './user.model';
+} from '../../../models/admin/users/user.model';
 import { IUsersService } from './users.service.interface';
 import { HttpClient, HttpParams } from '@angular/common/http';
 

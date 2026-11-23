@@ -5,7 +5,7 @@ import {
   UpdateUserStatusRequest,
   User,
   UserFilters,
-} from './user.model';
+} from '../../../models/admin/users/user.model';
 
 export interface IUsersService {
   getUsers(filters?: UserFilters): Observable<User[]>;

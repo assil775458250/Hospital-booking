@@ -1,51 +1,42 @@
-
-import { Injectable } from '@angular/core';
-import { DoctorSlot } from '../../models/doctor/Doctor.Model';
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { map, Observable } from 'rxjs';
+import { API_BASE_URL } from '../../core/config/api.config';
+import { CreateSlotRequest, CreateSlotResponse, DoctorSlot } from '../../models/doctor/Doctor.Model';
 import { SlotServiceInterface } from './slot-service.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SlotService implements SlotServiceInterface {
+  private readonly http = inject(HttpClient);
 
-  private slots: DoctorSlot[] = [
-    {
-      id: 1,
-      date: '2026-11-20',
-      startTime: '08:00',
-      endTime: '09:00',
-      isActive: true
-    },
-    {
-      id: 2,
-      date: '2026-11-21',
-      startTime: '10:00',
-      endTime: '11:00',
-      isActive: true
-    }
-  ];
-
-  getSlots(): DoctorSlot[] {
-    return this.slots;
+  getSlots(doctorId: number): Observable<DoctorSlot[]> {
+    return this.http.get<any[]>(`${API_BASE_URL}/api/doctors/${doctorId}/slots`).pipe(
+      map(items => (items || []).map(s => {
+        const rawDate = s.date ? (typeof s.date === 'string' ? s.date.split('T')[0] : '') : '';
+        return {
+          id: s.id,
+          doctorId: s.doctorId,
+          date: rawDate,
+          startTime: s.startTime || '',
+          endTime: s.endTime || '',
+          status: s.status || 'Available',
+          isActive: s.status !== 'Unavailable' && s.status !== 'Cancelled'
+        } as DoctorSlot;
+      }))
+    );
   }
 
-  addSlot(slot: DoctorSlot): void {
-    this.slots.push(slot);
+  addSlot(doctorId: number, slot: CreateSlotRequest): Observable<CreateSlotResponse> {
+    return this.http.post<CreateSlotResponse>(`${API_BASE_URL}/api/doctors/${doctorId}/slots`, slot);
   }
 
-  stopSlot(id: number): void {
-    const slot = this.slots.find(s => s.id === id);
-
-    if (slot) {
-      slot.isActive = false;
-    }
+  stopSlot(slotId: number): Observable<void> {
+    return this.http.put<void>(`${API_BASE_URL}/api/slots/${slotId}`, { status: 'Unavailable' });
   }
 
-  activateSlot(id: number): void {
-    const slot = this.slots.find(s => s.id === id);
-
-    if (slot) {
-      slot.isActive = true;
-    }
+  activateSlot(slotId: number): Observable<void> {
+    return this.http.put<void>(`${API_BASE_URL}/api/slots/${slotId}`, { status: 'Available' });
   }
 }

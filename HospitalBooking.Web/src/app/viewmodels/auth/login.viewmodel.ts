@@ -1,10 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AuthService } from '../../../core/auth/auth.service';
-import { AuthSessionService } from '../../../core/auth/auth-session.service';
-import { LoginRequest } from '../../../core/models/auth/login-request.model';
-import { LoginResponse } from '../../../core/models/auth/login-response.model';
+import { AuthService } from '../../services/auth/auth.service';
+import { AuthSessionService } from '../../core/auth/auth-session.service';
+import { LoginRequest } from '../../models/auth/login-request.model';
+import { LoginResponse } from '../../models/auth/login-response.model';
 
 @Injectable()
 export class LoginViewModel {

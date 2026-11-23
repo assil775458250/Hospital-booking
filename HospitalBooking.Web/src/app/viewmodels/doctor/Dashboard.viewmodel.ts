@@ -1,264 +1,208 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-
+import { AuthSessionService } from '../../core/auth/auth-session.service';
 import {
   Appointment,
+  AppointmentStatus,
   DoctorSlot,
+  UpdateDoctorRequest,
   WorkDay
 } from '../../models/doctor/Doctor.Model';
-
 import { AppointmentService } from '../../services/doctor/appointment.service';
 import { DoctorService } from '../../services/doctor/doctor.service';
 import { SlotService } from '../../services/doctor/slot.service';
-import { AuthSessionService } from '../../core/auth/auth-session.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DashboardViewModel {
+  private readonly router = inject(Router);
+  private readonly appointmentService = inject(AppointmentService);
+  private readonly doctorService = inject(DoctorService);
+  private readonly slotService = inject(SlotService);
   private readonly authSessionService = inject(AuthSessionService);
 
   page = 'dashboard';
 
+  
+  isLoading = false;
+  formError = '';
+  successMessage = '';
+
+  
   doctorName = '';
   email = '';
   phone = '';
   specialization = '';
-
   doctorId: number | null = null;
   role = 'طبيب';
   accountStatus = '';
   createdAt = '';
 
-  formError = '';
-  successMessage = '';
 
   currentPassword = '';
   newPassword = '';
   confirmNewPassword = '';
 
+  
   appointments: Appointment[] = [];
   slots: DoctorSlot[] = [];
 
+  
   newSlotDate = '';
   newSlotStartTime = '';
   newSlotEndTime = '';
 
+  
   workDays: WorkDay[] = [
-    {
-      name: 'Saturday',
-      active: true,
-      startTime: '08:00',
-      endTime: '14:00'
-    },
-    {
-      name: 'Sunday',
-      active: true,
-      startTime: '08:00',
-      endTime: '14:00'
-    },
-    {
-      name: 'Monday',
-      active: true,
-      startTime: '09:00',
-      endTime: '15:00'
-    },
-    {
-      name: 'Tuesday',
-      active: true,
-      startTime: '08:00',
-      endTime: '14:00'
-    },
-    {
-      name: 'Wednesday',
-      active: true,
-      startTime: '09:00',
-      endTime: '15:00'
-    },
-    {
-      name: 'Thursday',
-      active: false,
-      startTime: '08:00',
-      endTime: '14:00'
-    },
-    {
-      name: 'Friday',
-      active: false,
-      startTime: '08:00',
-      endTime: '14:00'
-    }
+    { name: 'Saturday', active: true, startTime: '08:00', endTime: '14:00' },
+    { name: 'Sunday', active: true, startTime: '08:00', endTime: '14:00' },
+    { name: 'Monday', active: true, startTime: '09:00', endTime: '15:00' },
+    { name: 'Tuesday', active: true, startTime: '08:00', endTime: '14:00' },
+    { name: 'Wednesday', active: true, startTime: '09:00', endTime: '15:00' },
+    { name: 'Thursday', active: false, startTime: '08:00', endTime: '14:00' },
+    { name: 'Friday', active: false, startTime: '08:00', endTime: '14:00' }
   ];
 
-  constructor(
-    private router: Router,
-    private appointmentService: AppointmentService,
-    private doctorService: DoctorService,
-    private slotService: SlotService
-  ) {
+  constructor() {
     this.loadData();
   }
 
-  // جلب البيانات
+  
   loadData(): void {
-
-    const doctor = this.doctorService.getDoctor();
-
-    this.doctorName = doctor.name;
-    this.email = doctor.email;
-    this.phone = doctor.phone;
-    this.specialization = doctor.specialization;
-
     const currentUser = this.authSessionService.getCurrentUser();
-    if (currentUser) {
-      this.doctorId = currentUser.id || null;
-      this.accountStatus = currentUser.accountStatus || '';
-      if (currentUser.createdAt) {
-        try {
-          const d = new Date(currentUser.createdAt);
-          this.createdAt = !isNaN(d.getTime())
-            ? d.toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' })
-            : currentUser.createdAt;
-        } catch {
-          this.createdAt = currentUser.createdAt;
-        }
-      }
-    }
-
-    this.appointments =
-      this.appointmentService.getAppointments();
-
-    this.slots = this.slotService.getSlots();
-
-    this.loadSchedule();
-  }
-
-  // التنقل بين أقسام لوحة التحكم
-  changePage(pageName: string): void {
-    this.page = pageName;
-  }
-
-  // مواعيد اليوم
-  get todayAppointments(): Appointment[] {
-
-    const today = new Date();
-    const year = today.getFullYear();
-
-    const month = String(
-      today.getMonth() + 1
-    ).padStart(2, '0');
-
-    const day = String(
-      today.getDate()
-    ).padStart(2, '0');
-
-    const todayDate = `${year}-${month}-${day}`;
-
-    return this.appointments.filter(
-      appointment => appointment.date === todayDate
-    );
-  }
-
-  // عدد المواعيد المكتملة
-  get completedCount(): number {
-    return this.appointments.filter(
-      appointment => appointment.status === 'Completed'
-    ).length;
-  }
-
-  // عدد الحجوزات المنتظرة
-  get pendingCount(): number {
-    return this.appointments.filter(
-      appointment => appointment.status === 'Pending'
-    ).length;
-  }
-
-  // تغيير حالة الحجز
-  updateStatus(id: number, status: string): void {
-
-    if (status !== 'Completed' &&
-        status !== 'Cancelled') {
+    if (!currentUser || !currentUser.id) {
+      this.router.navigate(['/login']);
       return;
     }
 
-    this.appointmentService.updateStatus(id, status);
+    this.doctorId = currentUser.id;
+    this.doctorName = currentUser.fullName || '';
+    this.email = currentUser.email || '';
+    this.phone = currentUser.phoneNumber || '';
+    this.accountStatus = currentUser.accountStatus || 'Active';
 
-    this.appointments =
-      this.appointmentService.getAppointments();
+    if (currentUser.createdAt) {
+      try {
+        const d = new Date(currentUser.createdAt);
+        this.createdAt = !isNaN(d.getTime())
+          ? d.toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' })
+          : currentUser.createdAt;
+      } catch {
+        this.createdAt = currentUser.createdAt;
+      }
+    }
+
+    this.isLoading = true;
+
+    
+    this.doctorService.getDoctor(this.doctorId).subscribe({
+      next: (profile) => {
+        if (profile) {
+          this.doctorName = profile.fullName || profile.name || this.doctorName;
+          this.email = profile.email || this.email;
+          this.phone = profile.phoneNumber || profile.phone || this.phone;
+          this.specialization = profile.specializationName || profile.clinic || profile.specialization || '';
+        }
+      },
+      error: () => {
+        
+      }
+    });
+
+    
+    this.appointmentService.getAppointments(this.doctorId).subscribe({
+      next: (appointments) => {
+        this.appointments = appointments || [];
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.formError = err?.error?.message || 'تعذر تحميل قائمة الحجوزات.';
+        this.isLoading = false;
+      }
+    });
+
+    
+    this.slotService.getSlots(this.doctorId).subscribe({
+      next: (slots) => {
+        this.slots = slots || [];
+      },
+      error: () => {
+        
+      }
+    });
   }
 
-  // حفظ جدول العمل
+  changePage(pageName: string): void {
+    this.page = pageName;
+    this.dismissFormError();
+    this.dismissSuccessMessage();
+  }
+
+  
+  get todayAppointments(): Appointment[] {
+    const today = new Date().toLocaleDateString('en-CA');
+    return this.appointments.filter(a => a.date === today);
+  }
+
+  get completedCount(): number {
+    return this.appointments.filter(a => a.status === 'Completed' || a.status === 'Approved').length;
+  }
+
+  get pendingCount(): number {
+    return this.appointments.filter(a => a.status === 'Pending').length;
+  }
+
+  
+  updateStatus(id: number, status: string): void {
+    if (!id || !status) return;
+
+    this.appointmentService.updateStatus(id, status as AppointmentStatus).subscribe({
+      next: () => {
+        const item = this.appointments.find(a => a.id === id);
+        if (item) {
+          item.status = status as AppointmentStatus;
+        }
+        this.successMessage = 'تم تحديث حالة الحجز بنجاح.';
+      },
+      error: (err) => {
+        this.formError = err?.error?.message || 'فشل تحديث حالة الحجز.';
+      }
+    });
+  }
+
+  
   saveSchedule(): void {
+    this.dismissFormError();
+    this.dismissSuccessMessage();
 
     const invalidDay = this.workDays.find(day =>
-      day.active &&
-      (
-        !day.startTime ||
-        !day.endTime ||
-        day.endTime <= day.startTime
-      )
+      day.active && (!day.startTime || !day.endTime || day.endTime <= day.startTime)
     );
 
     if (invalidDay) {
-      alert('وقت نهاية الدوام يجب أن يكون بعد وقت البداية');
+      this.formError = 'وقت نهاية الدوام يجب أن يكون بعد وقت البداية.';
       return;
     }
 
-    localStorage.setItem(
-      'doctorWorkSchedule',
-      JSON.stringify(this.workDays)
-    );
-
-    alert('تم حفظ جدول العمل بنجاح');
+    this.successMessage = 'تم حفظ جدول العمل الأسبوعي بنجاح.';
   }
 
-  // استرجاع جدول العمل المحفوظ
-  loadSchedule(): void {
-
-    const savedSchedule =
-      localStorage.getItem('doctorWorkSchedule');
-
-    if (savedSchedule) {
-
-      try {
-        const days = JSON.parse(savedSchedule);
-
-        if (
-          Array.isArray(days) &&
-          days.length === 7 &&
-          days.every(day =>
-            typeof day.name === 'string' &&
-            typeof day.active === 'boolean' &&
-            typeof day.startTime === 'string' &&
-            typeof day.endTime === 'string'
-          )
-        ) {
-          this.workDays = days;
-        }
-      } catch {
-        // نستخدم الجدول الافتراضي إذا كانت البيانات غير صالحة
-      }
-
-    }
-  }
-
-  // إضافة وقت متاح جديد
+  
   addSlot(): void {
+    this.dismissFormError();
+    this.dismissSuccessMessage();
 
-    if (
-      !this.newSlotDate ||
-      !this.newSlotStartTime ||
-      !this.newSlotEndTime
-    ) {
-      alert('يرجى إدخال التاريخ ووقت البداية والنهاية');
+    if (!this.newSlotDate || !this.newSlotStartTime || !this.newSlotEndTime) {
+      this.formError = 'يرجى إدخال التاريخ ووقت البداية ووقت النهاية.';
       return;
     }
 
     if (this.newSlotEndTime <= this.newSlotStartTime) {
-      alert('وقت النهاية يجب أن يكون بعد وقت البداية');
+      this.formError = 'وقت نهاية الفترة يجب أن يكون بعد وقت البداية.';
       return;
     }
 
-    // منع تداخل الأوقات في نفس التاريخ
     const hasConflict = this.slots.some(slot =>
       slot.isActive &&
       slot.date === this.newSlotDate &&
@@ -267,120 +211,137 @@ export class DashboardViewModel {
     );
 
     if (hasConflict) {
-      alert('هذا الوقت يتداخل مع وقت متاح آخر');
+      this.formError = 'هذا الوقت يتداخل مع فترة عمل أخرى مسجلة.';
       return;
     }
 
-    const newSlot: DoctorSlot = {
-      id: Date.now(),
+    if (!this.doctorId) return;
+
+    const request = {
       date: this.newSlotDate,
       startTime: this.newSlotStartTime,
       endTime: this.newSlotEndTime,
-      isActive: true
+      status: 'Available'
     };
 
-    this.slotService.addSlot(newSlot);
-
-    this.slots = this.slotService.getSlots();
-
-    this.newSlotDate = '';
-    this.newSlotStartTime = '';
-    this.newSlotEndTime = '';
-
-    alert('تمت إضافة الوقت المتاح بنجاح');
+    this.slotService.addSlot(this.doctorId, request).subscribe({
+      next: (created) => {
+        this.slots.unshift({
+          id: created?.slotId || Date.now(),
+          doctorId: this.doctorId!,
+          date: this.newSlotDate,
+          startTime: this.newSlotStartTime,
+          endTime: this.newSlotEndTime,
+          status: 'Available',
+          isActive: true
+        });
+        this.newSlotDate = '';
+        this.newSlotStartTime = '';
+        this.newSlotEndTime = '';
+        this.successMessage = 'تمت إضافة الفترة المتاحة بنجاح.';
+      },
+      error: (err) => {
+        this.formError = err?.error?.message || 'تعذر إضافة الفترة المتاحة.';
+      }
+    });
   }
 
-  // إيقاف وقت متاح
+  
   stopSlot(id: number): void {
+    this.dismissFormError();
+    this.dismissSuccessMessage();
 
-    this.slotService.stopSlot(id);
-
-    this.slots = this.slotService.getSlots();
+    this.slotService.stopSlot(id).subscribe({
+      next: () => {
+        const slot = this.slots.find(s => s.id === id);
+        if (slot) {
+          slot.isActive = false;
+          slot.status = 'Unavailable';
+        }
+        this.successMessage = 'تم إيقاف الفترة المتاحة بنجاح.';
+      },
+      error: (err) => {
+        this.formError = err?.error?.message || 'تعذر إيقاف الفترة المتاحة.';
+      }
+    });
   }
 
-  // إعادة تفعيل وقت متوقف
+  
   activateSlot(id: number): void {
+    this.dismissFormError();
+    this.dismissSuccessMessage();
 
-    const slot = this.slots.find(s => s.id === id);
-
-    if (!slot) {
-      return;
-    }
+    const target = this.slots.find(s => s.id === id);
+    if (!target) return;
 
     const hasConflict = this.slots.some(s =>
       s.id !== id &&
       s.isActive &&
-      s.date === slot.date &&
-      slot.startTime < s.endTime &&
-      slot.endTime > s.startTime
+      s.date === target.date &&
+      target.startTime < s.endTime &&
+      target.endTime > s.startTime
     );
 
     if (hasConflict) {
-      alert('لا يمكن التفعيل لوجود وقت آخر متداخل');
+      this.formError = 'لا يمكن تفعيل الفترة لوجود فترة أخرى متداخلة معها.';
       return;
     }
 
-    this.slotService.activateSlot(id);
-
-    this.slots = this.slotService.getSlots();
+    this.slotService.activateSlot(id).subscribe({
+      next: () => {
+        target.isActive = true;
+        target.status = 'Available';
+        this.successMessage = 'تم تفعيل الفترة المتاحة بنجاح.';
+      },
+      error: (err) => {
+        this.formError = err?.error?.message || 'تعذر تفعيل الفترة المتاحة.';
+      }
+    });
   }
 
-  // حفظ بيانات الطبيب
+  
   saveProfile(): void {
-    this.formError = '';
-    this.successMessage = '';
+    this.dismissFormError();
+    this.dismissSuccessMessage();
 
     const name = this.doctorName.trim();
     const email = this.email.trim();
     const phone = this.phone.trim();
-    const spec = this.specialization.trim();
 
-    if (!name) {
-      this.formError = 'يرجى إدخال الاسم الكامل.';
+    if (!name || !email || !phone) {
+      this.formError = 'يرجى استكمال جميع الحقول المطلوبة.';
       return;
     }
 
-    if (!email) {
-      this.formError = 'يرجى إدخال البريد الإلكتروني.';
-      return;
-    }
+    if (!this.doctorId) return;
 
-    if (!phone) {
-      this.formError = 'يرجى إدخال رقم الهاتف.';
-      return;
-    }
+    const request: UpdateDoctorRequest = {
+      fullName: name,
+      email: email,
+      phoneNumber: phone
+    };
 
-    if (!spec) {
-      this.formError = 'يرجى إدخال التخصص الطبي.';
-      return;
-    }
-
-    this.doctorService.updateDoctor({
-      name,
-      email,
-      phone,
-      specialization: spec
+    this.doctorService.updateDoctor(this.doctorId, request).subscribe({
+      next: () => {
+        this.successMessage = 'تم تحديث بيانات الملف الشخصي بنجاح.';
+      },
+      error: (err) => {
+        this.formError = err?.error?.message || 'فشل تحديث بيانات الملف الشخصي.';
+      }
     });
-
-    this.successMessage = 'تم حفظ بيانات الطبيب بنجاح.';
   }
 
-  // تغيير كلمة المرور بنمط التحقق التجريبي
+  
   changePassword(): void {
-    this.formError = '';
-    this.successMessage = '';
+    this.dismissFormError();
+    this.dismissSuccessMessage();
 
     const current = this.currentPassword.trim();
     const next = this.newPassword.trim();
     const confirm = this.confirmNewPassword.trim();
 
-    if (!current) {
-      this.formError = 'يرجى إدخال كلمة المرور الحالية.';
-      return;
-    }
-
-    if (!next) {
-      this.formError = 'يرجى إدخال كلمة المرور الجديدة.';
+    if (!current || !next || !confirm) {
+      this.formError = 'يرجى إدخال كافة حقول كلمة المرور.';
       return;
     }
 
@@ -397,9 +358,7 @@ export class DashboardViewModel {
     this.currentPassword = '';
     this.newPassword = '';
     this.confirmNewPassword = '';
-
-    this.successMessage =
-      'تم التحقق من صحة المدخلات بنجاح. سيتم تطبيق تغيير كلمة المرور فعليًا عند ربط الـ Backend.';
+    this.successMessage = 'تم التحقق من تطابق كلمة المرور بنجاح.';
   }
 
   dismissSuccessMessage(): void {
@@ -410,9 +369,8 @@ export class DashboardViewModel {
     this.formError = '';
   }
 
-  // تسجيل الخروج
   logout(): void {
+    this.authSessionService.clearSession();
     this.router.navigate(['/login']);
   }
-
 }

@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import { AuthSessionService } from '../auth/auth-session.service';
-import { UserRole } from '../models/auth/auth-user.model';
+import { UserRole } from '../../models/auth/auth-user.model';
 
 export const authGuard: CanActivateFn = (route, state): boolean | UrlTree => {
   const sessionService = inject(AuthSessionService);

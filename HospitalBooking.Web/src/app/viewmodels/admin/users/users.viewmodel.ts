@@ -7,8 +7,8 @@ import {
   User,
   UserRole,
   UserStatus,
-} from './user.model';
-import { UsersService } from './users.service';
+} from '../../../models/admin/users/user.model';
+import { UsersService } from '../../../services/admin/users/users.service';
 
 export interface UserFormData {
   fullName: string;

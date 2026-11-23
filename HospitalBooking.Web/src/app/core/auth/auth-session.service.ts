@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { AuthUser, UserRole } from '../models/auth/auth-user.model';
-import { LoginResponse } from '../models/auth/login-response.model';
+import { AuthUser, UserRole } from '../../models/auth/auth-user.model';
+import { LoginResponse } from '../../models/auth/login-response.model';
 
 interface StoredSessionData {
   token: string;
